@@ -1,0 +1,125 @@
+import {
+  getOutcomeCategory,
+  getOutcomeLabel,
+  getOutcomeTier,
+  OUTCOME_CATEGORY_VALUES,
+  type OutcomeCategory,
+} from "@/lib/call-outcomes";
+import type { Database } from "@/types/database";
+
+export type CallDirection = "inbound" | "outbound";
+
+// List row used by /calls — shape matches the get_portal_calls RPC return.
+// The plpgsql RETURNS TABLE drops nullability information, so we re-add it
+// here to reflect the underlying all_client_calls column nullability.
+export type CallLog = {
+  call_id: string;
+  assistant_id: string | null;
+  location_id: string | null;
+  call_date: string | null;
+  call_duration_s: number | null;
+  call_outcome: string | null;
+  user_sentiment: string | null;
+  call_direction: string | null;
+  phone_number: number | null;
+  summary: string | null;
+  agent_name: string | null;
+  reviewed: boolean;
+};
+
+// Detail row used by /calls/[id] — full all_client_calls row returned by the
+// get_portal_call RPC. Generated directly from the database schema so it stays
+// in sync with column changes.
+export type CallLogDetail =
+  Database["public"]["Functions"]["get_portal_call"]["Returns"];
+
+export type CallLogFilters = {
+  /** Company id is no longer used by the action layer (the RPC derives it from
+   * auth.uid()), but we keep it on the type for backward compatibility with
+   * existing call sites. */
+  companyId?: string;
+  page?: number;
+  perPage?: number;
+  search?: string;
+  direction?: string;
+  sentiment?: string;
+  agent?: string;
+  outcome?: string;
+  sortBy?: string;
+  sortOrder?: string;
+  from?: string;
+  to?: string;
+  durationMin?: string;
+  durationMax?: string;
+  hours?: string;
+  reviewedState?: string;
+};
+
+export type CallLogResult = {
+  calls: Array<CallLog & { isBusinessHours: boolean | null }>;
+  total: number;
+  page: number;
+  perPage: number;
+};
+
+export const SENTIMENT_STYLES: Record<
+  string,
+  { label: string; pill: string; dot: string }
+> = {
+  positive: {
+    label: "Positive",
+    pill: "bg-emerald-50 text-emerald-700",
+    dot: "bg-emerald-500",
+  },
+  neutral: {
+    label: "Neutral",
+    pill: "bg-zinc-100 text-zinc-700",
+    dot: "bg-zinc-500",
+  },
+  negative: {
+    label: "Negative",
+    pill: "bg-rose-50 text-rose-700",
+    dot: "bg-rose-500",
+  },
+};
+
+export function normalizeSentiment(value: string | null) {
+  return value?.toLowerCase() ?? null;
+}
+
+export function getOutcomeBadge(callOutcome: string | null) {
+  const category = getOutcomeCategory(callOutcome);
+  return {
+    category,
+    label: getOutcomeLabel(callOutcome),
+    tier: getOutcomeTier(category),
+  };
+}
+
+export function getOutcomeFilterOptions(): Array<{
+  value: OutcomeCategory;
+  label: string;
+}> {
+  return (Object.keys(OUTCOME_CATEGORY_VALUES) as OutcomeCategory[]).map((key) => ({
+    value: key,
+    label: getOutcomeLabel(OUTCOME_CATEGORY_VALUES[key][0] ?? key),
+  }));
+}
+
+export function formatCallDuration(seconds: number | null) {
+  if (!seconds || seconds <= 0) return "—";
+  const wholeSeconds = Math.round(seconds);
+  const minutes = Math.floor(wholeSeconds / 60);
+  const remainingSeconds = wholeSeconds % 60;
+  return minutes > 0 ? `${minutes}m ${remainingSeconds}s` : `${remainingSeconds}s`;
+}
+
+export function formatPhoneNumber(raw: number | string | null) {
+  if (raw === null || raw === undefined) return "Unknown";
+  const digits = String(raw).replace(/\D/g, "");
+  const normalized = digits.length === 11 && digits[0] === "1" ? digits.slice(1) : digits;
+  if (normalized.length === 10) {
+    return `(${normalized.slice(0, 3)}) ${normalized.slice(3, 6)}-${normalized.slice(6)}`;
+  }
+  return String(raw);
+}
