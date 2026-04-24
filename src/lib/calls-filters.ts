@@ -16,6 +16,7 @@ export type RpcFilterArgs = {
   p_from?: string;
   p_to?: string;
   p_reviewed_state?: string;
+  p_hours?: string;
   p_sort_by: string;
   p_sort_order: string;
 };
@@ -101,6 +102,10 @@ export function buildRpcFilterArgs(
     p_from: filters.from ? `${filters.from}T00:00:00` : undefined,
     p_to: filters.to ? `${filters.to}T23:59:59.999` : undefined,
     p_reviewed_state: normalizeReviewedState(filters.reviewedState),
+    p_hours:
+      filters.hours === "business" || filters.hours === "after"
+        ? filters.hours
+        : undefined,
     p_sort_by: rpcSortBy,
     p_sort_order: rpcSortOrder,
   };

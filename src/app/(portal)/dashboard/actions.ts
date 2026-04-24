@@ -1,68 +1,14 @@
 import { unstable_noStore as noStore } from "next/cache";
 import { getDashboardDateRange } from "@/lib/date-range";
 import {
-  getOutcomeCategory,
   getOutcomeLabel,
-  getOutcomeTier,
   OUTCOME_TIER_COLORS,
+  type OutcomeCategory,
 } from "@/lib/call-outcomes";
-import {
-  normalizeRevenueSettings,
-  type RevenueCategoryKey,
-} from "@/lib/revenue-settings";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
-type DashboardCall = {
-  call_id: string;
-  assistant_id: string | null;
-  location_id: string | null;
-  call_date: string | null;
-  call_duration_s: number | null;
-  call_outcome: string | null;
-  appointment_activity: boolean | null;
-  appointment_scheduled: boolean | null;
-  appointment_reviewed: boolean | null;
-  appointment_scheduling_review: boolean | null;
-};
-
-type ClientSettingsRow = {
-  timezone: string | null;
-};
-
-type BusinessHoursEntry = {
-  open?: string | null;
-  close?: string | null;
-} | null;
-
-type BusinessHoursSchedule = Partial<
-  Record<"mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun", BusinessHoursEntry>
->;
-
-type LocationRow = {
-  id: string;
-  timezone: string | null;
-  business_hours: BusinessHoursSchedule | null;
-  location_name: string | null;
-};
-
-type AssistantLocationRow = {
-  assistant_id: string;
-  location_id: string | null;
-  agent_name: string | null;
-  status: boolean | null;
-};
-
-type LocationClosureRow = {
-  location_id: string;
-  closure_date: string;
-  recurring: boolean;
-};
-
-type RevenueSettingsRow = {
-  average_order_value: number | string | null;
-  category_settings: Record<string, { enabled?: boolean; closeRate?: number }> | null;
-};
-
+// Shapes consumed by dashboard-content.tsx and the chart/table components —
+// kept identical so UI code doesn't change when aggregation moves to SQL.
 export interface KpiData {
   totalCalls: number;
   minutesTalked: number;
@@ -135,277 +81,83 @@ export type DashboardData = {
   };
 };
 
-type TimeParts = {
-  weekday: string;
-  hour: number;
+// JSONB payload shape returned by get_portal_dashboard_metrics. Kept private
+// to this file — the public DashboardData shape is the adapter's output.
+type DashboardKpiPayload = {
+  total_calls: number;
+  minutes_talked: number | string;
+  avg_duration_s: number | string;
+  conversions: number | string;
+  revenue_impact: number | string;
 };
 
-type LocalDateParts = {
-  weekdayKey: keyof BusinessHoursSchedule;
-  minutes: number;
-  monthDay: string;
-  dateKey: string;
+type DashboardMetricsPayload = {
+  company_timezone: string;
+  revenue_settings_configured: boolean;
+  current: DashboardKpiPayload;
+  previous: DashboardKpiPayload;
+  outcomes: Array<{
+    category: OutcomeCategory | string;
+    tier: "high" | "medium" | "low";
+    count: number;
+    estimated_value: number;
+  }>;
+  hours_split: { business_hours: number; after_hours: number };
+  hourly_volume: Array<{ hour: number; count: number }>;
+  daily_volume: Array<{ day: string; count: number }>;
+  agent_performance: Array<{
+    assistant_id: string;
+    agent_name: string | null;
+    total_calls: number;
+    avg_duration_s: number | string;
+    expected_orders: number | string;
+  }>;
 };
 
-const FALLBACK_TIME_ZONE = "America/Los_Angeles";
-const FALLBACK_OPEN_MINUTES = 9 * 60;
-const FALLBACK_CLOSE_MINUTES = 17 * 60;
+type DashboardLocationRow = {
+  id: string;
+  location_name: string | null;
+};
 
-function calculateTrend(current: number, previous: number) {
+function toNumber(value: number | string | null | undefined): number {
+  if (typeof value === "number") return value;
+  if (typeof value === "string") return Number(value);
+  return 0;
+}
+
+function calculateTrend(current: number, previous: number): number | null {
   if (previous <= 0) {
     return current > 0 ? 100 : null;
   }
-
   return Math.round(((current - previous) / previous) * 100);
 }
 
-function getLocalDateParts(value: string, timeZone: string): LocalDateParts {
-  const date = new Date(value);
-  const formatter = new Intl.DateTimeFormat("en-CA", {
-    timeZone,
-    weekday: "short",
-    hour: "numeric",
-    minute: "numeric",
-    hourCycle: "h23",
-    month: "2-digit",
-    day: "2-digit",
-    year: "numeric",
-  });
+// Weekday order matches what the daily-volume chart expects.
+const WEEKDAY_ORDER: ReadonlyArray<{ key: string; label: string }> = [
+  { key: "mon", label: "Mon" },
+  { key: "tue", label: "Tue" },
+  { key: "wed", label: "Wed" },
+  { key: "thu", label: "Thu" },
+  { key: "fri", label: "Fri" },
+  { key: "sat", label: "Sat" },
+  { key: "sun", label: "Sun" },
+];
 
-  const parts = formatter.formatToParts(date);
-  const weekdayRaw = parts.find((part) => part.type === "weekday")?.value?.slice(0, 3).toLowerCase() ?? "mon";
-  const hour = Number(parts.find((part) => part.type === "hour")?.value ?? "0");
-  const minute = Number(parts.find((part) => part.type === "minute")?.value ?? "0");
-  const month = parts.find((part) => part.type === "month")?.value ?? "01";
-  const day = parts.find((part) => part.type === "day")?.value ?? "01";
-  const year = parts.find((part) => part.type === "year")?.value ?? "1970";
-  const weekdayKey = (["mon", "tue", "wed", "thu", "fri", "sat", "sun"].includes(weekdayRaw)
-    ? weekdayRaw
-    : "mon") as keyof BusinessHoursSchedule;
-
-  return {
-    weekdayKey,
-    minutes: hour * 60 + minute,
-    monthDay: `${month}-${day}`,
-    dateKey: `${year}-${month}-${day}`,
-  };
-}
-
-function getTimeParts(value: string, timeZone: string): TimeParts {
-  const localParts = getLocalDateParts(value, timeZone);
-  const weekday = localParts.weekdayKey[0].toUpperCase() + localParts.weekdayKey.slice(1);
-  const hour = Math.floor(localParts.minutes / 60);
-
-  return { weekday, hour };
-}
-
-function buildHourlySeries(calls: DashboardCall[], timeZone: string) {
-  const buckets = Array.from({ length: 24 }, (_, hour) => ({ hour, count: 0 }));
-
-  for (const call of calls) {
-    if (!call.call_date) continue;
-    const { hour } = getTimeParts(call.call_date, timeZone);
-    buckets[hour].count += 1;
-  }
-
-  return buckets;
-}
-
-function buildDailySeries(calls: DashboardCall[], timeZone: string) {
-  const order = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-  const counts = new Map(order.map((day) => [day, 0]));
-
-  for (const call of calls) {
-    if (!call.call_date) continue;
-    const { weekday } = getTimeParts(call.call_date, timeZone);
-    const normalized = weekday.slice(0, 3);
-    counts.set(normalized, (counts.get(normalized) ?? 0) + 1);
-  }
-
-  return order.map((day) => ({ day, count: counts.get(day) ?? 0 }));
-}
-
-function parseTimeToMinutes(value: string | null | undefined) {
-  if (!value) return null;
-  const [hours, minutes] = value.split(":").map(Number);
-  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return null;
-  return hours * 60 + minutes;
-}
-
-function isLocationClosed(localParts: LocalDateParts, closures: LocationClosureRow[]) {
-  return closures.some((closure) =>
-    closure.recurring ? closure.closure_date.slice(5, 10) === localParts.monthDay : closure.closure_date === localParts.dateKey
-  );
-}
-
-function isWithinBusinessHours(
-  call: DashboardCall,
-  companyTimeZone: string,
-  assistantLocations: Map<string, string>,
-  locations: Map<string, LocationRow>,
-  closuresByLocation: Map<string, LocationClosureRow[]>,
-) {
-  if (!call.call_date) return false;
-
-  const resolvedLocationId = call.location_id ?? (call.assistant_id ? assistantLocations.get(call.assistant_id) : undefined);
-  const location = resolvedLocationId ? locations.get(resolvedLocationId) : undefined;
-  const timeZone = location?.timezone || companyTimeZone || FALLBACK_TIME_ZONE;
-  const localParts = getLocalDateParts(call.call_date, timeZone);
-
-  if (!location || !resolvedLocationId) {
-    return localParts.minutes >= FALLBACK_OPEN_MINUTES && localParts.minutes < FALLBACK_CLOSE_MINUTES;
-  }
-  const closures = closuresByLocation.get(resolvedLocationId) ?? [];
-  if (isLocationClosed(localParts, closures)) return false;
-
-  const daySchedule = location.business_hours?.[localParts.weekdayKey];
-  if (!daySchedule?.open || !daySchedule?.close) {
-    return localParts.minutes >= FALLBACK_OPEN_MINUTES && localParts.minutes < FALLBACK_CLOSE_MINUTES;
-  }
-
-  const openMinutes = parseTimeToMinutes(daySchedule.open);
-  const closeMinutes = parseTimeToMinutes(daySchedule.close);
-  if (openMinutes === null || closeMinutes === null) {
-    return localParts.minutes >= FALLBACK_OPEN_MINUTES && localParts.minutes < FALLBACK_CLOSE_MINUTES;
-  }
-
-  if (openMinutes === closeMinutes) return true;
-  if (openMinutes < closeMinutes) {
-    return localParts.minutes >= openMinutes && localParts.minutes < closeMinutes;
-  }
-
-  return localParts.minutes >= openMinutes || localParts.minutes < closeMinutes;
-}
-
-function buildHoursData(
-  calls: DashboardCall[],
-  companyTimeZone: string,
-  assistantLocations: Map<string, string>,
-  locations: Map<string, LocationRow>,
-  closuresByLocation: Map<string, LocationClosureRow[]>,
-): HoursChartData {
-  let businessHours = 0;
-  let afterHours = 0;
-
-  for (const call of calls) {
-    if (!call.call_date) continue;
-    if (
-      isWithinBusinessHours(
-        call,
-        companyTimeZone,
-        assistantLocations,
-        locations,
-        closuresByLocation,
-      )
-    ) {
-      businessHours += 1;
-    } else {
-      afterHours += 1;
-    }
-  }
-
-  return {
-    total: businessHours + afterHours,
-    businessHours,
-    afterHours,
-  };
-}
-
-function buildOutcomeData(
-  calls: DashboardCall[],
-  revenueSettings: ReturnType<typeof normalizeRevenueSettings>,
-): OutcomeChartData[] {
-  const counts = new Map<
-    string,
-    {
-      count: number;
-      estimatedValue: number;
-      impactTier: "high" | "medium" | "low";
-      color: string;
-    }
-  >();
-
-  for (const call of calls) {
-    const category = getOutcomeCategory(call.call_outcome);
-    const label = getOutcomeLabel(call.call_outcome);
-    const impactTier = getOutcomeTier(category);
-    const categorySettings = revenueSettings.categories[category as RevenueCategoryKey];
-    const estimatedValue = categorySettings.enabled
-      ? Math.round(
-          revenueSettings.averageOrderValue * (categorySettings.closeRate / 100),
-        )
-      : 0;
-    const existing = counts.get(label);
-
-    counts.set(label, {
-      count: (existing?.count ?? 0) + 1,
-      estimatedValue: (existing?.estimatedValue ?? 0) + estimatedValue,
-      impactTier,
-      color: OUTCOME_TIER_COLORS[impactTier],
-    });
-  }
-
-  return [...counts.entries()]
-    .map(([name, value]) => ({
-      name,
-      count: value.count,
-      estimatedValue: value.estimatedValue,
-      impactTier: value.impactTier,
-      color: value.color,
-    }))
-    .sort((a, b) => b.count - a.count);
-}
-
-function buildKpiData(
-  currentCalls: DashboardCall[],
-  previousCalls: DashboardCall[],
-  revenueSettings: ReturnType<typeof normalizeRevenueSettings>,
+function buildKpi(
+  current: DashboardKpiPayload,
+  previous: DashboardKpiPayload,
   revenueSettingsConfigured: boolean,
 ): KpiData {
-  const currentTotalCalls = currentCalls.length;
-  const previousTotalCalls = previousCalls.length;
-
-  const currentMinutesTalked = currentCalls.reduce(
-    (sum, call) => sum + Math.max(0, call.call_duration_s ?? 0),
-    0,
-  ) / 60;
-  const previousMinutesTalked = previousCalls.reduce(
-    (sum, call) => sum + Math.max(0, call.call_duration_s ?? 0),
-    0,
-  ) / 60;
-
-  const currentAvgDuration = currentTotalCalls > 0
-    ? currentCalls.reduce((sum, call) => sum + Math.max(0, call.call_duration_s ?? 0), 0) / currentTotalCalls
-    : 0;
-  const previousAvgDuration = previousTotalCalls > 0
-    ? previousCalls.reduce((sum, call) => sum + Math.max(0, call.call_duration_s ?? 0), 0) / previousTotalCalls
-    : 0;
-
-  const currentConversions = currentCalls.reduce((sum, call) => {
-    const category = getOutcomeCategory(call.call_outcome) as RevenueCategoryKey;
-    const categorySettings = revenueSettings.categories[category];
-    if (!categorySettings.enabled) return sum;
-    return sum + categorySettings.closeRate / 100;
-  }, 0);
-  const previousConversions = previousCalls.reduce((sum, call) => {
-    const category = getOutcomeCategory(call.call_outcome) as RevenueCategoryKey;
-    const categorySettings = revenueSettings.categories[category];
-    if (!categorySettings.enabled) return sum;
-    return sum + categorySettings.closeRate / 100;
-  }, 0);
-
-  const revenueImpact = currentCalls.reduce((sum, call) => {
-    const category = getOutcomeCategory(call.call_outcome) as RevenueCategoryKey;
-    const categorySettings = revenueSettings.categories[category];
-    if (!categorySettings.enabled) return sum;
-    return sum + revenueSettings.averageOrderValue * (categorySettings.closeRate / 100);
-  }, 0);
-  const previousRevenueImpact = previousCalls.reduce((sum, call) => {
-    const category = getOutcomeCategory(call.call_outcome) as RevenueCategoryKey;
-    const categorySettings = revenueSettings.categories[category];
-    if (!categorySettings.enabled) return sum;
-    return sum + revenueSettings.averageOrderValue * (categorySettings.closeRate / 100);
-  }, 0);
+  const currentTotalCalls = current.total_calls;
+  const previousTotalCalls = previous.total_calls;
+  const currentMinutesTalked = toNumber(current.minutes_talked);
+  const previousMinutesTalked = toNumber(previous.minutes_talked);
+  const currentAvgDuration = toNumber(current.avg_duration_s);
+  const previousAvgDuration = toNumber(previous.avg_duration_s);
+  const currentConversions = toNumber(current.conversions);
+  const previousConversions = toNumber(previous.conversions);
+  const currentRevenueImpact = toNumber(current.revenue_impact);
+  const previousRevenueImpact = toNumber(previous.revenue_impact);
 
   return {
     totalCalls: currentTotalCalls,
@@ -413,200 +165,148 @@ function buildKpiData(
     avgDuration: currentAvgDuration,
     conversions: currentConversions,
     conversionLabel: "Expected Orders",
-    revenueImpact: Math.round(revenueImpact),
+    revenueImpact: Math.round(currentRevenueImpact),
     revenueSettingsConfigured,
     trends: {
       totalCalls: calculateTrend(currentTotalCalls, previousTotalCalls),
       minutesTalked: calculateTrend(currentMinutesTalked, previousMinutesTalked),
       avgDuration: calculateTrend(currentAvgDuration, previousAvgDuration),
       conversions: calculateTrend(currentConversions, previousConversions),
-      revenueImpact: calculateTrend(revenueImpact, previousRevenueImpact),
+      revenueImpact: calculateTrend(currentRevenueImpact, previousRevenueImpact),
     },
   };
 }
 
+function buildOutcomeChartData(
+  payload: DashboardMetricsPayload["outcomes"],
+): OutcomeChartData[] {
+  // SQL groups by category; one row per category. Convert to the UI shape
+  // using the display label + tier color from call-outcomes.ts. SQL already
+  // sorted by count desc.
+  return payload.map((row) => ({
+    name: getOutcomeLabel(row.category as string),
+    count: row.count,
+    estimatedValue: Number(row.estimated_value),
+    color: OUTCOME_TIER_COLORS[row.tier],
+    impactTier: row.tier,
+  }));
+}
+
+function buildHoursData(
+  payload: DashboardMetricsPayload["hours_split"],
+): HoursChartData {
+  return {
+    total: payload.business_hours + payload.after_hours,
+    businessHours: payload.business_hours,
+    afterHours: payload.after_hours,
+  };
+}
+
+function buildHourlyVolume(
+  payload: DashboardMetricsPayload["hourly_volume"],
+): VolumeByHourData[] {
+  // SQL emits sparse hours; fill 0..23 so the chart always renders 24 bars.
+  const counts = new Map<number, number>(
+    payload.map((row) => [row.hour, row.count]),
+  );
+  return Array.from({ length: 24 }, (_, hour) => ({
+    hour,
+    count: counts.get(hour) ?? 0,
+  }));
+}
+
+function buildDailyVolume(
+  payload: DashboardMetricsPayload["daily_volume"],
+): VolumeByDayData[] {
+  // SQL emits sparse weekdays in {mon,tue,...}; fill any missing day with 0
+  // and map to the capitalized 3-letter labels the chart uses.
+  const counts = new Map<string, number>(
+    payload.map((row) => [row.day, row.count]),
+  );
+  return WEEKDAY_ORDER.map(({ key, label }) => ({
+    day: label,
+    count: counts.get(key) ?? 0,
+  }));
+}
+
+function buildAgentPerformance(
+  payload: DashboardMetricsPayload["agent_performance"],
+): AgentPerformanceRow[] {
+  // SQL returns every active agent, including idle ones (total_calls = 0).
+  // Already sorted by total_calls desc.
+  return payload.map((row) => ({
+    assistantId: row.assistant_id,
+    agentName: row.agent_name ?? row.assistant_id,
+    totalCalls: row.total_calls,
+    avgDurationSeconds: toNumber(row.avg_duration_s),
+    expectedOrders: toNumber(row.expected_orders),
+  }));
+}
+
 export async function getDashboardData(
-  companyId: string,
+  _companyId: string,
   searchParams: URLSearchParams,
 ): Promise<DashboardData> {
   noStore();
   const supabase = await createServerSupabaseClient();
   const range = getDashboardDateRange(searchParams);
-  const fallbackSettings = {
-    timezone: FALLBACK_TIME_ZONE,
-  };
 
   // Multi-select location filter from the URL. Empty/missing means "all
-  // locations" (rollup default). When present, apply to both the current and
-  // previous calls queries so the trend math stays consistent.
+  // locations" — pass NULL so the RPC skips the filter.
   const rawLocations = searchParams.get("locations");
   const selectedLocationIds = rawLocations
     ? rawLocations.split(",").filter(Boolean)
     : [];
   const hasLocationFilter = selectedLocationIds.length > 0;
 
-  const currentCallsQuery = supabase
-    .from("all_client_calls")
-    .select(
-      "call_id, assistant_id, location_id, call_date, call_duration_s, call_outcome, appointment_activity, appointment_scheduled, appointment_reviewed, appointment_scheduling_review",
-    )
-    .eq("company_id", companyId)
-    .gte("call_date", range.from.toISOString())
-    .lte("call_date", range.to.toISOString());
-  if (hasLocationFilter) {
-    currentCallsQuery.in("location_id", selectedLocationIds);
-  }
+  // The generated Supabase types don't yet include the new RPC, so cast the
+  // client to `any` for this call. The payload shape is validated against
+  // DashboardMetricsPayload below.
+  const rpcClient = supabase as unknown as {
+    rpc: (name: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: { message: string } | null }>;
+  };
 
-  const previousCallsQuery = supabase
-    .from("all_client_calls")
-    .select(
-      "call_id, assistant_id, location_id, call_date, call_duration_s, call_outcome, appointment_activity, appointment_scheduled, appointment_reviewed, appointment_scheduling_review",
-    )
-    .eq("company_id", companyId)
-    .gte("call_date", range.previousFrom.toISOString())
-    .lte("call_date", range.previousTo.toISOString());
-  if (hasLocationFilter) {
-    previousCallsQuery.in("location_id", selectedLocationIds);
-  }
-
-  const [
-    { data: currentCallsData },
-    { data: previousCallsData },
-    { data: clientSettings },
-    { data: assistantRows },
-    { data: locationRows },
-    { data: locationClosures },
-    { data: revenueSettingsRow },
-    { count: activeAgentsCount },
-  ] = await Promise.all([
-    currentCallsQuery.order("call_date", { ascending: true }),
-    previousCallsQuery.order("call_date", { ascending: true }),
-    supabase
-      .from("clients")
-      .select("timezone")
-      .eq("company_id", companyId)
-      .maybeSingle<ClientSettingsRow>(),
-    supabase
-      .from("assistants")
-      .select("assistant_id, location_id, agent_name, status")
-      .eq("company_id", companyId)
-      .returns<AssistantLocationRow[]>(),
-    supabase
-      .from("locations")
-      .select("id, timezone, business_hours, location_name")
-      .eq("company_id", companyId)
-      .returns<LocationRow[]>(),
-    supabase
-      .from("location_closures")
-      .select("location_id, closure_date, recurring")
-      .returns<LocationClosureRow[]>(),
-    supabase
-      .from("portal_revenue_settings")
-      .select("average_order_value, category_settings")
-      .eq("company_id", companyId)
-      .maybeSingle<RevenueSettingsRow>(),
+  const [metricsResult, activeAgentsResult, locationsResult] = await Promise.all([
+    rpcClient.rpc("get_portal_dashboard_metrics", {
+      p_from: range.from.toISOString(),
+      p_to: range.to.toISOString(),
+      p_previous_from: range.previousFrom.toISOString(),
+      p_previous_to: range.previousTo.toISOString(),
+      p_location_ids: hasLocationFilter ? selectedLocationIds : null,
+    }),
     supabase
       .from("assistants")
       .select("assistant_id", { count: "exact", head: true })
-      .eq("company_id", companyId)
       .eq("status", true),
+    supabase
+      .from("locations")
+      .select("id, location_name")
+      .returns<DashboardLocationRow[]>(),
   ]);
 
-  const settings = {
-    timezone: clientSettings?.timezone || fallbackSettings.timezone,
-  };
-  const assistantLocations = new Map(
-    (assistantRows ?? [])
-      .filter((row): row is AssistantLocationRow & { location_id: string } => Boolean(row.assistant_id && row.location_id))
-      .map((row) => [row.assistant_id, row.location_id]),
-  );
-  const locations = new Map((locationRows ?? []).map((location) => [location.id, location]));
-  const locationIds = new Set((locationRows ?? []).map((location) => location.id));
-  const closuresByLocation = new Map<string, LocationClosureRow[]>();
-  for (const closure of locationClosures ?? []) {
-    if (!locationIds.has(closure.location_id)) continue;
-    const existing = closuresByLocation.get(closure.location_id) ?? [];
-    existing.push(closure);
-    closuresByLocation.set(closure.location_id, existing);
+  if (metricsResult.error) {
+    throw new Error(
+      `Failed to load dashboard metrics: ${metricsResult.error.message}`,
+    );
   }
-  const revenueSettings = normalizeRevenueSettings({
-    averageOrderValue:
-      typeof revenueSettingsRow?.average_order_value === "string"
-        ? Number(revenueSettingsRow.average_order_value)
-        : (revenueSettingsRow?.average_order_value ?? undefined),
-    categories: (revenueSettingsRow?.category_settings ?? undefined) as any,
-  });
 
-  const currentCalls = (currentCallsData ?? []).filter(
-    (call): call is DashboardCall => Boolean(call.call_id),
-  );
-  const previousCalls = (previousCallsData ?? []).filter(
-    (call): call is DashboardCall => Boolean(call.call_id),
+  const payload = metricsResult.data as unknown as DashboardMetricsPayload;
+
+  const kpiData = buildKpi(
+    payload.current,
+    payload.previous,
+    payload.revenue_settings_configured,
   );
 
-  const kpiData = buildKpiData(
-    currentCalls,
-    previousCalls,
-    revenueSettings,
-    Boolean(revenueSettingsRow),
-  );
+  const agentPerformance = buildAgentPerformance(payload.agent_performance);
 
-  // Agent performance aggregation — only active agents, ordered by call volume
-  // desc. An agent without any calls in the current range still appears so the
-  // client can see which of their agents are idle. Expected orders uses the
-  // same formula as the KPI card: sum of closeRate/100 for calls whose outcome
-  // category is enabled in the company's revenue settings.
-  const activeAssistants = (assistantRows ?? []).filter(
-    (row) => row.status === true && row.assistant_id,
-  );
-  const agentTotals = new Map<
-    string,
-    { totalCalls: number; totalDurationS: number; expectedOrders: number }
-  >();
-  for (const assistant of activeAssistants) {
-    agentTotals.set(assistant.assistant_id, {
-      totalCalls: 0,
-      totalDurationS: 0,
-      expectedOrders: 0,
-    });
-  }
-  for (const call of currentCalls) {
-    if (!call.assistant_id) continue;
-    const bucket = agentTotals.get(call.assistant_id);
-    if (!bucket) continue;
-    bucket.totalCalls += 1;
-    bucket.totalDurationS += call.call_duration_s ?? 0;
-    const category = getOutcomeCategory(call.call_outcome) as RevenueCategoryKey;
-    const categorySettings = revenueSettings.categories[category];
-    if (categorySettings?.enabled) {
-      bucket.expectedOrders += categorySettings.closeRate / 100;
-    }
-  }
-  const agentPerformance: AgentPerformanceRow[] = activeAssistants
-    .map((assistant) => {
-      const bucket = agentTotals.get(assistant.assistant_id)!;
-      const avgDurationSeconds =
-        bucket.totalCalls > 0 ? bucket.totalDurationS / bucket.totalCalls : 0;
-      return {
-        assistantId: assistant.assistant_id,
-        agentName: assistant.agent_name ?? assistant.assistant_id,
-        totalCalls: bucket.totalCalls,
-        avgDurationSeconds,
-        expectedOrders: bucket.expectedOrders,
-      };
-    })
-    .sort((a, b) => b.totalCalls - a.totalCalls);
-
-  const locationOptions: DashboardLocationOption[] = (locationRows ?? [])
+  const locationOptions: DashboardLocationOption[] = (locationsResult.data ?? [])
     .filter((row) => row.location_name)
-    .map((row) => ({
-      id: row.id,
-      name: row.location_name as string,
-    }))
+    .map((row) => ({ id: row.id, name: row.location_name as string }))
     .sort((a, b) => a.name.localeCompare(b.name));
 
   return {
-    activeAgents: activeAgentsCount ?? 0,
+    activeAgents: activeAgentsResult.count ?? 0,
     kpiData,
     agentPerformance,
     locationOptions,
@@ -616,19 +316,10 @@ export async function getDashboardData(
       to: range.to.toISOString(),
     },
     chartData: {
-      outcomeChartData: buildOutcomeData(
-        currentCalls,
-        revenueSettings,
-      ),
-      hoursData: buildHoursData(
-        currentCalls,
-        settings.timezone,
-        assistantLocations,
-        locations,
-        closuresByLocation,
-      ),
-      volumeByHour: buildHourlySeries(currentCalls, settings.timezone),
-      volumeByDay: buildDailySeries(currentCalls, settings.timezone),
+      outcomeChartData: buildOutcomeChartData(payload.outcomes),
+      hoursData: buildHoursData(payload.hours_split),
+      volumeByHour: buildHourlyVolume(payload.hourly_volume),
+      volumeByDay: buildDailyVolume(payload.daily_volume),
     },
   };
 }

@@ -311,21 +311,23 @@ export async function getBillingData(companyId: string): Promise<BillingPageData
 
   const plan = buildPlan(client, planResult.data, usageResult.data);
 
-  // Compute used minutes directly from all_client_calls.call_duration_s for
-  // the current cycle window. See note in buildUsage for why we bypass
-  // usage_cycle.used_minutes.
-  const computedUsedMinutes = await computeUsedMinutesFromCalls(
+  // Pull used minutes + daily usage series from the SQL usage-meter RPC in
+  // one call. Used minutes are computed off all_client_calls.call_duration_s
+  // (see buildUsage note for why we bypass usage_cycle.used_minutes), and the
+  // daily series is bucketed in the tenant's timezone with zero-call days
+  // filled in so the chart always shows the whole cycle.
+  const meter = await loadUsageMeter(
     supabase,
-    companyId,
     usageResult.data?.cycle_start ?? null,
     usageResult.data?.cycle_end ?? null,
+    client.timezone || DEFAULT_TIMEZONE,
   );
 
   const usage = buildUsage(
     plan,
     usageResult.data,
     assistantsResult.data ?? [],
-    computedUsedMinutes,
+    meter.usedMinutes,
   );
   const invoices = buildInvoices(invoicesResult.data ?? []);
 
@@ -338,140 +340,65 @@ export async function getBillingData(companyId: string): Promise<BillingPageData
       }
     : null;
 
-  // Daily usage aggregation for the current cycle. We re-query all_client_calls
-  // for calls within the cycle window and bucket by day so the timeline chart
-  // shows every day (including zero-call days) across the cycle.
-  const dailyUsage = await buildDailyUsage(
-    supabase,
-    companyId,
-    usage.cycleStart,
-    usage.cycleEnd,
-    client.timezone || DEFAULT_TIMEZONE,
-  );
-
   return {
     plan,
     usage,
     invoices,
     paymentMethod,
-    dailyUsage,
+    dailyUsage: meter.dailySeries,
   };
 }
 
-async function computeUsedMinutesFromCalls(
+type UsageMeterPayload = {
+  used_minutes: number | string;
+  daily_series: Array<{ date: string; minutes_used: number | string }>;
+};
+
+type UsageMeterResult = {
+  usedMinutes: number | null;
+  dailySeries: BillingDailyUsagePoint[];
+};
+
+async function loadUsageMeter(
   supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>,
-  companyId: string,
-  cycleStart: string | null,
-  cycleEnd: string | null,
-): Promise<number | null> {
-  if (!cycleStart) return null;
-
-  // Fetch call_duration_s for the cycle window and sum in JS. We deliberately
-  // use call_duration_s (not call_duration_min) because the latter has been
-  // null for recent records in this project — call_duration_s is the only
-  // reliable source.
-  const { data: rows, error } = await supabase
-    .from("all_client_calls")
-    .select("call_duration_s")
-    .eq("company_id", companyId)
-    .gte("call_date", new Date(cycleStart).toISOString())
-    .lte(
-      "call_date",
-      new Date(cycleEnd ?? new Date().toISOString()).toISOString(),
-    );
-
-  if (error) {
-    console.error("[portal] computeUsedMinutesFromCalls failed:", error);
-    return null;
-  }
-
-  const totalSeconds = (rows ?? []).reduce(
-    (sum, row) => sum + Number((row as { call_duration_s: number | null }).call_duration_s ?? 0),
-    0,
-  );
-  return Number((totalSeconds / 60).toFixed(2));
-}
-
-// Turns a call_date timestamp into a "YYYY-MM-DD" string in the tenant's
-// local timezone. Using Intl.DateTimeFormat is the only way to get the civil
-// date in an arbitrary IANA zone without pulling in date-fns-tz.
-function localDateKey(isoDate: string, timeZone: string): string {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(new Date(isoDate));
-  const year = parts.find((p) => p.type === "year")?.value ?? "1970";
-  const month = parts.find((p) => p.type === "month")?.value ?? "01";
-  const day = parts.find((p) => p.type === "day")?.value ?? "01";
-  return `${year}-${month}-${day}`;
-}
-
-async function buildDailyUsage(
-  supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>,
-  companyId: string,
   cycleStart: string | null,
   cycleEnd: string | null,
   timeZone: string,
-): Promise<BillingDailyUsagePoint[]> {
-  // If we don't have a cycle, fall back to the last 30 days so the chart
-  // still renders something useful on brand-new accounts.
+): Promise<UsageMeterResult> {
+  // Fall back to the last 30 days for brand-new accounts without a cycle row,
+  // so the chart still renders something useful.
   const now = new Date();
   const fallbackStart = new Date(now);
   fallbackStart.setDate(fallbackStart.getDate() - 29);
-  const startDate = cycleStart ? new Date(cycleStart) : fallbackStart;
-  const endDate = cycleEnd ? new Date(cycleEnd) : now;
+  const startIso = (cycleStart ? new Date(cycleStart) : fallbackStart).toISOString();
+  const endIso = (cycleEnd ? new Date(cycleEnd) : now).toISOString();
 
-  // Clamp the end to today so we don't render future zero-bars.
-  const effectiveEnd = endDate > now ? now : endDate;
+  // The generated Supabase types don't yet include the new RPC.
+  const rpcClient = supabase as unknown as {
+    rpc: (name: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: { message: string } | null }>;
+  };
+  const { data, error } = await rpcClient.rpc("get_portal_usage_meter", {
+    p_cycle_start: startIso,
+    p_cycle_end: endIso,
+    p_timezone: timeZone,
+  });
 
-  // Read call_duration_s (not call_duration_min — see note above).
-  const { data: callRows } = await supabase
-    .from("all_client_calls")
-    .select("call_date, call_duration_s")
-    .eq("company_id", companyId)
-    .gte("call_date", startDate.toISOString())
-    .lte("call_date", effectiveEnd.toISOString());
-
-  const minutesByDay = new Map<string, number>();
-  for (const row of (callRows ?? []) as Array<{
-    call_date: string | null;
-    call_duration_s: number | null;
-  }>) {
-    if (!row.call_date) continue;
-    // Group by the tenant's local date, not UTC or the server's local zone.
-    // Without this, calls late in the evening roll into the next day for
-    // tenants west of UTC.
-    const dayKey = localDateKey(row.call_date, timeZone);
-    const minutes = Number(row.call_duration_s ?? 0) / 60;
-    minutesByDay.set(dayKey, (minutesByDay.get(dayKey) ?? 0) + minutes);
+  if (error || !data) {
+    if (error) console.error("[portal] get_portal_usage_meter RPC failed:", error);
+    return { usedMinutes: null, dailySeries: [] };
   }
 
-  // Walk every day from startDate to effectiveEnd so zero-call days still
-  // appear as empty bars — the cycle shape matters visually. We also need to
-  // walk in the tenant's timezone so the cursor's day labels match the keys
-  // we computed for grouping.
-  const points: BillingDailyUsagePoint[] = [];
-  const startKey = localDateKey(startDate.toISOString(), timeZone);
-  const endKey = localDateKey(effectiveEnd.toISOString(), timeZone);
+  const payload = data as UsageMeterPayload;
+  const usedMinutes = Number(payload.used_minutes);
+  const dailySeries: BillingDailyUsagePoint[] = payload.daily_series.map((row) => ({
+    date: row.date,
+    minutesUsed: Number(row.minutes_used),
+  }));
 
-  // Walk day by day using a simple Date cursor anchored at noon UTC to avoid
-  // DST edge cases, emitting the local day key at each step.
-  const cursor = new Date(`${startKey}T12:00:00Z`);
-  const endCursor = new Date(`${endKey}T12:00:00Z`);
-  let safety = 400;
-  while (cursor <= endCursor && safety-- > 0) {
-    const dayKey = localDateKey(cursor.toISOString(), timeZone);
-    const minutes = minutesByDay.get(dayKey) ?? 0;
-    points.push({
-      date: dayKey,
-      minutesUsed: Number(minutes.toFixed(2)),
-    });
-    cursor.setUTCDate(cursor.getUTCDate() + 1);
-  }
-
-  return points;
+  return {
+    usedMinutes: Number.isFinite(usedMinutes) ? usedMinutes : 0,
+    dailySeries,
+  };
 }
 
 export async function getPortalUsage(filters: {
