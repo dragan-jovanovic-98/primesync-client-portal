@@ -4,7 +4,6 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { format } from "date-fns";
 import {
   ArrowUpDown,
-  Check,
   ChevronLeft,
   ChevronRight,
   PhoneIncoming,
@@ -27,7 +26,7 @@ interface CallsTableProps {
   perPage: number;
 }
 
-const cols = "150px 95px 190px 160px 110px 120px 105px 1fr";
+const cols = "150px 115px 190px 160px 110px 120px 1fr";
 const emptyDash = "text-[14px] text-[rgba(0,0,0,0.25)]";
 const cellBase = "flex items-center truncate border-r border-[#eeeff1] px-3";
 const cellLast = "flex items-center truncate px-3";
@@ -107,7 +106,6 @@ export function CallsTable({ calls, total, page, perPage }: CallsTableProps) {
               Sentiment <ArrowUpDown className="h-3 w-3" />
             </button>
           </div>
-          <div className={cn(cellBase, headerText, "h-10")}>Reviewed</div>
           <div className={cn(cellLast, headerText, "h-10")}>Summary</div>
         </div>
 
@@ -170,17 +168,6 @@ export function CallsTable({ calls, total, page, perPage }: CallsTableProps) {
                   >
                     <span className={cn("h-1.5 w-1.5 rounded-full", sentimentStyle.dot)} />
                     {sentimentStyle.label}
-                  </span>
-                ) : (
-                  <span className={emptyDash}>—</span>
-                )}
-              </div>
-
-              <div className={cellBase}>
-                {call.reviewed ? (
-                  <span className="inline-flex items-center gap-1 text-[12px] font-medium text-emerald-600">
-                    <Check className="h-3 w-3" />
-                    Reviewed
                   </span>
                 ) : (
                   <span className={emptyDash}>—</span>

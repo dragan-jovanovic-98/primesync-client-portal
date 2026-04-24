@@ -94,9 +94,9 @@ export const OUTCOME_LABELS: Record<OutcomeCategory, string> = {
 };
 
 export const OUTCOME_TIER_LABELS: Record<OutcomeTier, string> = {
-  high: "Converted",
-  medium: "Engaged",
-  low: "Dropped off",
+  high: "Actioned",
+  medium: "Informational",
+  low: "No action",
 };
 
 export const OUTCOME_TIER_COLORS: Record<OutcomeTier, string> = {

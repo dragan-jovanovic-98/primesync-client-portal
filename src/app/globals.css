@@ -5,6 +5,14 @@
 }
 
 :root {
+  /* TorQi brand tokens — canonical per context/torqi-brand.md §4.
+     Hover variants derived (~10–15% darker) for interactive states. */
+  --torqi-orange: #f19a1f;
+  --torqi-orange-hover: #d98611;
+  --torqi-navy: #0f1841;
+  --torqi-navy-hover: #1a2563;
+
+  /* Base surfaces & neutrals (Courtside-aligned, preserved) */
   --background: #ffffff;
   --foreground: #242529;
   --card: #ffffff;
@@ -13,54 +21,72 @@
   --muted-foreground: rgba(0, 0, 0, 0.55);
   --border: #eeeff1;
   --input: #eeeff1;
-  --primary: #242529;
+
+  /* Primary = TorQi Orange. Any component using `bg-primary` /
+     `text-primary-foreground` inherits the new brand accent. */
+  --primary: var(--torqi-orange);
   --primary-foreground: #ffffff;
+
   --secondary: #f5f7fa;
   --secondary-foreground: #242529;
   --accent: #f5f7fa;
   --accent-foreground: #242529;
+
+  /* Semantic state colors — derived from the TorQi secondary palette
+     (guideline page 18). `--destructive` stays as existing rose since
+     the brand pack defines no red. */
+  --success: #0f766e;
+  --success-foreground: #ffffff;
+  --info: #2563eb;
+  --info-foreground: #ffffff;
+  --warning: #c2410c;
+  --warning-foreground: #ffffff;
   --destructive: #e11d48;
+  --destructive-foreground: #ffffff;
+
   --ring: rgba(0, 0, 0, 0.15);
   --sidebar: #fbfbfb;
   --sidebar-border: #eeeff1;
 }
 
-* {
-  box-sizing: border-box;
-  border-color: var(--border);
-}
+@layer base {
+  * {
+    box-sizing: border-box;
+    border-color: var(--border);
+  }
 
-html {
-  background: var(--background);
-}
+  html {
+    background: var(--background);
+  }
 
-body {
-  margin: 0;
-  min-height: 100vh;
-  color: var(--foreground);
-  background: var(--background);
-  font-family: inherit;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+  body {
+    margin: 0;
+    min-height: 100vh;
+    color: var(--foreground);
+    background: var(--background);
+    font-family: inherit;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
 
-button,
-input,
-select,
-textarea,
-kbd {
-  font: inherit;
-}
+  button,
+  input,
+  select,
+  textarea,
+  kbd {
+    font: inherit;
+  }
 
-button:not(:disabled),
-[role="button"]:not([aria-disabled="true"]),
-summary {
-  cursor: pointer;
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  summary {
+    cursor: pointer;
+  }
 }
 
 .no-scrollbar::-webkit-scrollbar {
@@ -73,4 +99,15 @@ summary {
 
 .tabular-nums {
   font-variant-numeric: tabular-nums;
+}
+
+@keyframes torqi-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

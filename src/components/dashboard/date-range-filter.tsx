@@ -86,13 +86,13 @@ export function DateRangeFilter() {
 
   return (
     <div className="relative" ref={containerRef}>
-      <div className="flex items-center rounded-lg border border-[#eeeff1] bg-[#fbfbfb] p-0.5">
+      <div className="flex h-8 items-center rounded-lg border border-[#eeeff1] bg-[#fbfbfb] p-0.5">
         {presets.map((preset) => (
           <Link
             key={preset.value}
             href={`${pathname}?range=${preset.value}`}
             className={cn(
-              "rounded-md px-3 py-1 text-[13px] font-medium transition-colors",
+              "flex h-[26px] items-center rounded-md px-3 text-[13px] font-medium transition-colors",
               activeRange === preset.value
                 ? "bg-white text-[#242529] shadow-sm"
                 : "text-[rgba(0,0,0,0.45)] hover:text-[#242529]",
@@ -107,7 +107,7 @@ export function DateRangeFilter() {
             setOpen((value) => !value);
           }}
           className={cn(
-            "flex items-center gap-1.5 rounded-md px-3 py-1 text-[13px] font-medium transition-colors",
+            "flex h-[26px] items-center gap-1.5 rounded-md px-3 text-[13px] font-medium transition-colors",
             activeRange === "custom" || open
               ? "bg-white text-[#242529] shadow-sm"
               : "text-[rgba(0,0,0,0.45)] hover:text-[#242529]",

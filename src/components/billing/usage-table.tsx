@@ -6,6 +6,7 @@ import {
   type BillingUsageCallRow,
   type BillingUsageResult,
 } from "@/lib/billing";
+import { getOutcomeLabel } from "@/lib/call-outcomes";
 import { cn } from "@/lib/utils";
 
 function formatDuration(seconds: number | null) {
@@ -68,10 +69,10 @@ export function UsageTable({
   return (
     <div className="rounded-lg border border-[#eeeff1] bg-white">
       <div
-        className="grid h-10 items-center border-b border-[#eeeff1] px-5 text-[11px] font-semibold uppercase tracking-wide text-zinc-500"
+        className="grid h-10 items-center gap-x-6 border-b border-[#eeeff1] px-5 text-[11px] font-semibold uppercase tracking-wide text-zinc-500"
         style={{
           gridTemplateColumns:
-            "170px 100px minmax(0,1fr) minmax(0,1fr) 110px 110px",
+            "160px 90px 180px minmax(0,1fr) 180px 100px",
         }}
       >
         <div>Call time</div>
@@ -88,10 +89,10 @@ export function UsageTable({
           return (
             <div
               key={row.callId}
-              className="grid h-[46px] items-center px-5 text-[13px] text-[#242529] transition-colors hover:bg-[#fbfbfb]"
+              className="grid h-[46px] items-center gap-x-6 px-5 text-[13px] text-[#242529] transition-colors hover:bg-[#fbfbfb]"
               style={{
                 gridTemplateColumns:
-                  "170px 100px minmax(0,1fr) minmax(0,1fr) 110px 110px",
+                  "160px 90px 180px minmax(0,1fr) 180px 100px",
               }}
             >
               <div className="text-zinc-600">
@@ -107,7 +108,7 @@ export function UsageTable({
                 {row.locationName ?? "—"}
               </div>
               <div className="truncate text-zinc-600">
-                {row.outcome ?? "—"}
+                {row.outcome ? getOutcomeLabel(row.outcome) : "—"}
               </div>
               <div
                 className="text-right tabular-nums font-medium"

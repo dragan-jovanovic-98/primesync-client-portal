@@ -99,7 +99,7 @@ export function LocationFilter({ locations }: LocationFilterProps) {
           setOpen((value) => !value);
         }}
         className={cn(
-          "flex h-[30px] items-center gap-1.5 rounded-lg border border-[#eeeff1] bg-[#fbfbfb] px-3 text-[13px] font-medium transition-colors",
+          "flex h-8 items-center gap-1.5 rounded-lg border border-[#eeeff1] bg-[#fbfbfb] px-3 text-[13px] font-medium transition-colors",
           selectedCount > 0 || open
             ? "text-[#242529]"
             : "text-[rgba(0,0,0,0.55)] hover:text-[#242529]",

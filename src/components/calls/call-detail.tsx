@@ -102,10 +102,8 @@ export function CallDetail({ call, canWriteReview }: CallDetailProps) {
             <div className="border-b border-[#eeeff1] px-5 py-4">
               <h2 className="text-[15px] font-semibold text-[#242529]">Transcript</h2>
             </div>
-            <div className="px-5 py-4">
-              <pre className="whitespace-pre-wrap font-sans text-[14px] leading-6 text-[#242529]">
-                {call.transcript || "No transcript available."}
-              </pre>
+            <div className="px-5 py-5">
+              <TranscriptChat transcript={call.transcript} />
             </div>
           </section>
         </div>
@@ -164,6 +162,80 @@ export function CallDetail({ call, canWriteReview }: CallDetailProps) {
           />
         </div>
       </div>
+    </div>
+  );
+}
+
+type TranscriptTurn = { speaker: "agent" | "user"; text: string };
+
+function parseTranscript(raw: string | null): TranscriptTurn[] {
+  if (!raw) return [];
+  const turns: TranscriptTurn[] = [];
+  const lineRegex = /^(agent|user)\s*:\s*(.*)$/i;
+
+  for (const line of raw.split(/\r?\n/)) {
+    const match = line.match(lineRegex);
+    if (match) {
+      const speaker = match[1].toLowerCase() === "agent" ? "agent" : "user";
+      const text = match[2].trim();
+      if (text) turns.push({ speaker, text });
+    } else {
+      const trimmed = line.trim();
+      if (trimmed && turns.length > 0) {
+        turns[turns.length - 1].text += ` ${trimmed}`;
+      }
+    }
+  }
+
+  return turns;
+}
+
+function TranscriptChat({ transcript }: { transcript: string | null }) {
+  const turns = parseTranscript(transcript);
+
+  if (turns.length === 0) {
+    return (
+      <p className="text-[14px] text-[rgba(0,0,0,0.55)]">
+        No transcript available.
+      </p>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-2.5">
+      {turns.map((turn, index) => {
+        const isAgent = turn.speaker === "agent";
+        return (
+          <div
+            key={index}
+            className={cn(
+              "flex",
+              isAgent ? "justify-start" : "justify-end",
+            )}
+          >
+            <div className="flex max-w-[78%] flex-col gap-1">
+              <span
+                className={cn(
+                  "text-[11px] font-medium uppercase tracking-wide text-[rgba(0,0,0,0.4)]",
+                  isAgent ? "text-left" : "text-right",
+                )}
+              >
+                {isAgent ? "Agent" : "Caller"}
+              </span>
+              <div
+                className={cn(
+                  "rounded-2xl px-3.5 py-2 text-[14px] leading-[1.45]",
+                  isAgent
+                    ? "rounded-tl-sm bg-[#f5f5f7] text-[#242529]"
+                    : "rounded-tr-sm bg-[#242529] text-white",
+                )}
+              >
+                {turn.text}
+              </div>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
