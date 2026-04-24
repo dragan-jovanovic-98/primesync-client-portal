@@ -244,7 +244,7 @@ function buildAgentPerformance(
 }
 
 export async function getDashboardData(
-  _companyId: string,
+  companyId: string,
   searchParams: URLSearchParams,
 ): Promise<DashboardData> {
   noStore();
@@ -277,7 +277,8 @@ export async function getDashboardData(
     supabase
       .from("assistants")
       .select("assistant_id", { count: "exact", head: true })
-      .eq("status", true),
+      .eq("status", true)
+      .eq("company_id", companyId),
     supabase
       .from("locations")
       .select("id, location_name")
