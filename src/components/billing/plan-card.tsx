@@ -9,7 +9,8 @@ import {
 
 export function PlanCard({ plan }: { plan: BillingPlan }) {
   return (
-    <div className="rounded-lg border border-[#eeeff1] bg-white">
+    <div className="overflow-hidden rounded-lg border border-[#eeeff1] bg-white">
+      <div className="h-[3px] bg-[#0F1841]" />
       <div className="px-5 py-4">
         <p className="text-[11px] font-semibold uppercase tracking-wide text-[rgba(0,0,0,0.45)]">
           Current Plan

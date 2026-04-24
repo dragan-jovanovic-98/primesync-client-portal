@@ -61,7 +61,7 @@ function CallSearchInput({
         placeholder="Search calls..."
         value={value}
         onChange={(event) => updateSearch(event.target.value)}
-        className="h-9 w-full rounded-lg border border-[#eeeff1] bg-white pl-9 pr-9 text-[14px] text-[#242529] placeholder:text-[rgba(0,0,0,0.35)] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
+        className="h-9 w-full rounded-lg border border-[#eeeff1] bg-white pl-9 pr-9 text-[14px] text-[#242529] placeholder:text-[rgba(0,0,0,0.35)] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-[rgba(15,24,65,0.12)]"
       />
       {value ? (
         <button

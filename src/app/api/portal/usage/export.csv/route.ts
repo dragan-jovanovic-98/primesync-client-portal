@@ -36,7 +36,7 @@ function buildFilename() {
   const stamp =
     `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}` +
     `-${pad(now.getHours())}${pad(now.getMinutes())}`;
-  return `primesync-usage-${stamp}.csv`;
+  return `torqi-usage-${stamp}.csv`;
 }
 
 function formatDuration(seconds: number | null) {

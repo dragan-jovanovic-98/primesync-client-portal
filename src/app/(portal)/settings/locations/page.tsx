@@ -213,7 +213,7 @@ export default async function LocationsSettingsPage({
                       type="text"
                       defaultValue={activeLocation.location_name ?? ""}
                       disabled={!isAdmin}
-                      className="h-10 w-full rounded-xl border border-[#e9e9ee] px-3 text-[14px] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200 disabled:bg-zinc-50 disabled:text-zinc-500"
+                      className="h-10 w-full rounded-xl border border-[#e9e9ee] px-3 text-[14px] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-[rgba(15,24,65,0.12)] disabled:bg-zinc-50 disabled:text-zinc-500"
                     />
                   </div>
 
@@ -229,7 +229,7 @@ export default async function LocationsSettingsPage({
                       name="timezone"
                       defaultValue={activeLocation.timezone ?? ""}
                       disabled={!isAdmin}
-                      className="h-10 w-full rounded-xl border border-[#e9e9ee] px-3 text-[14px] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200 disabled:bg-zinc-50 disabled:text-zinc-500"
+                      className="h-10 w-full rounded-xl border border-[#e9e9ee] px-3 text-[14px] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-[rgba(15,24,65,0.12)] disabled:bg-zinc-50 disabled:text-zinc-500"
                     >
                       <option value="">Select timezone</option>
                       {TIMEZONES.map((tz) => (
@@ -253,7 +253,7 @@ export default async function LocationsSettingsPage({
                       type="text"
                       defaultValue={activeLocation.address ?? ""}
                       disabled={!isAdmin}
-                      className="h-10 w-full rounded-xl border border-[#e9e9ee] px-3 text-[14px] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200 disabled:bg-zinc-50 disabled:text-zinc-500"
+                      className="h-10 w-full rounded-xl border border-[#e9e9ee] px-3 text-[14px] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-[rgba(15,24,65,0.12)] disabled:bg-zinc-50 disabled:text-zinc-500"
                     />
                   </div>
 

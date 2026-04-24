@@ -70,7 +70,7 @@ export default async function ReferralsPage() {
             </p>
             <p className="text-sm text-[rgba(0,0,0,0.55)]">
               Earn credits and discounts for every business you refer that signs
-              up for Primesync.
+              up for TorQi.
             </p>
           </div>
         </div>

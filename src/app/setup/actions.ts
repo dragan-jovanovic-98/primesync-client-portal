@@ -58,7 +58,7 @@ export async function completePortalSetup(formData: FormData) {
     password,
     user_metadata: {
       full_name: fullName,
-      source: "primesync-client-portal",
+      source: "torqi-client-portal",
     },
   });
 

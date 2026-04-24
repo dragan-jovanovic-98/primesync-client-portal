@@ -123,7 +123,7 @@ export function BusinessHoursEditor({
                   onChange={(e) =>
                     updateDay(key, { enabled: e.target.checked })
                   }
-                  className="h-3.5 w-3.5 rounded border-zinc-300 text-[#242529] focus:ring-zinc-300"
+                  className="h-3.5 w-3.5 rounded border-zinc-300 text-[#242529] focus:ring-[rgba(15,24,65,0.15)]"
                 />
                 <span className="text-[13px] font-medium text-zinc-700">
                   {label.slice(0, 3)}
@@ -138,7 +138,7 @@ export function BusinessHoursEditor({
                     disabled={disabled}
                     step="900"
                     onChange={(e) => updateDay(key, { open: e.target.value })}
-                    className="h-8 rounded-lg border border-[#eeeff1] px-2 text-[13px] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200 disabled:bg-zinc-50 disabled:text-zinc-500"
+                    className="h-8 rounded-lg border border-[#eeeff1] px-2 text-[13px] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-[rgba(15,24,65,0.12)] disabled:bg-zinc-50 disabled:text-zinc-500"
                   />
                   <span className="text-[12px] text-zinc-400">to</span>
                   <input
@@ -147,7 +147,7 @@ export function BusinessHoursEditor({
                     disabled={disabled}
                     step="900"
                     onChange={(e) => updateDay(key, { close: e.target.value })}
-                    className="h-8 rounded-lg border border-[#eeeff1] px-2 text-[13px] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200 disabled:bg-zinc-50 disabled:text-zinc-500"
+                    className="h-8 rounded-lg border border-[#eeeff1] px-2 text-[13px] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-[rgba(15,24,65,0.12)] disabled:bg-zinc-50 disabled:text-zinc-500"
                   />
                 </div>
               ) : (

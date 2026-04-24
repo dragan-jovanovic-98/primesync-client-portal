@@ -50,7 +50,7 @@ function buildFilename() {
   const stamp =
     `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}` +
     `-${pad(now.getHours())}${pad(now.getMinutes())}`;
-  return `primesync-calls-${stamp}.csv`;
+  return `torqi-calls-${stamp}.csv`;
 }
 
 type CallRow = {

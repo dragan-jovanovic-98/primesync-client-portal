@@ -107,7 +107,7 @@ export function DailyUsageChart({
                 />
                 <Bar
                   dataKey="minutesUsed"
-                  fill="#242529"
+                  fill="#0F1841"
                   radius={[3, 3, 0, 0]}
                   maxBarSize={32}
                 />

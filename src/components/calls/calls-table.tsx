@@ -35,9 +35,9 @@ const headerText =
   "text-[11px] font-semibold uppercase tracking-wide text-[rgba(0,0,0,0.4)]";
 
 function outcomeBadgeStyles(tier: "high" | "medium" | "low") {
-  if (tier === "high") return "bg-[#242529] text-white";
-  if (tier === "medium") return "bg-zinc-100 text-zinc-700";
-  return "bg-zinc-50 text-zinc-500";
+  if (tier === "high") return "bg-[#F19A1F] text-white";
+  if (tier === "medium") return "bg-[#0F1841] text-white";
+  return "bg-zinc-100 text-zinc-500";
 }
 
 export function CallsTable({ calls, total, page, perPage }: CallsTableProps) {

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import {
@@ -14,6 +15,7 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { BRAND } from "@/lib/brand";
 import { usePortalUser } from "@/components/providers/portal-provider";
 import { PORTAL_NAV_ITEMS } from "@/lib/permissions";
 
@@ -61,9 +63,18 @@ export function MobileNav() {
         )}
       >
         <div className="flex h-12 items-center justify-between border-b border-[#eeeff1] px-4">
-          <span className="text-[14px] font-semibold text-[#242529] tracking-[-0.14px]">
-            Primesync
-          </span>
+          <div className="flex items-center gap-2">
+            <Image
+              src="/brand/torqi-favicon-dark.svg"
+              alt=""
+              width={26}
+              height={26}
+              className="h-[26px] w-[26px] shrink-0 rounded-md"
+            />
+            <span className="text-[16px] font-bold tracking-[0.025em] text-[#242529]">
+              {BRAND.wordmark}
+            </span>
+          </div>
           <button
             onClick={() => setOpen(false)}
             className="flex h-6 w-6 items-center justify-center rounded-md text-[rgba(0,0,0,0.35)] transition-colors hover:bg-[#eeeff1] hover:text-[#242529]"

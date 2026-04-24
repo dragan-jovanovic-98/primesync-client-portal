@@ -40,14 +40,14 @@ const FAQ_ITEMS = [
       "Go to Settings > Team to invite new members by email. You can assign admin or staff roles. Admins can manage billing, users, and all settings. Staff members can view the dashboard, call logs, and operational areas but cannot access billing or user management.",
   },
   {
-    question: "What integrations does Primesync support?",
+    question: "What integrations does TorQi support?",
     answer:
-      "Primesync syncs with over 5,000 integrations including ServiceTitan, HubSpot, Google Calendar, Microsoft 365, Calendly, Jobber, Housecall Pro, and other industry-specific platforms. Your agent can book appointments directly into your calendar and sync with your existing CRM.",
+      "TorQi syncs with over 5,000 integrations including ServiceTitan, HubSpot, Google Calendar, Microsoft 365, Calendly, Jobber, Housecall Pro, and other industry-specific platforms. Your agent can book appointments directly into your calendar and sync with your existing CRM.",
   },
   {
-    question: "What makes Primesync different from other AI phone solutions?",
+    question: "What makes TorQi different from other AI phone solutions?",
     answer:
-      "Primesync offers advanced conversational intelligence that goes beyond basic Q&A. Your agent learns and improves from every interaction, integrates seamlessly with your existing business software, and can be customized with voice personas that match your brand. Most clients are fully up and running within a few days.",
+      "TorQi offers advanced conversational intelligence that goes beyond basic Q&A. Your agent learns and improves from every interaction, integrates seamlessly with your existing business software, and can be customized with voice personas that match your brand. Most clients are fully up and running within a few days.",
   },
 ];
 
@@ -148,7 +148,7 @@ export default async function SupportPage({
                 type="text"
                 required
                 placeholder="Brief description of your issue"
-                className="h-8 w-full rounded-lg border border-[#eeeff1] px-2.5 text-[14px] placeholder:text-[rgba(0,0,0,0.35)] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
+                className="h-8 w-full rounded-lg border border-[#eeeff1] px-2.5 text-[14px] placeholder:text-[rgba(0,0,0,0.35)] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-[rgba(15,24,65,0.12)]"
               />
             </div>
             <div className="space-y-1.5">
@@ -156,7 +156,7 @@ export default async function SupportPage({
               <select
                 id="category"
                 name="category"
-                className="h-8 w-full rounded-lg border border-[#eeeff1] px-2.5 text-[14px] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
+                className="h-8 w-full rounded-lg border border-[#eeeff1] px-2.5 text-[14px] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-[rgba(15,24,65,0.12)]"
               >
                 {CATEGORIES.map((cat) => (
                   <option key={cat} value={cat}>
@@ -175,13 +175,13 @@ export default async function SupportPage({
               rows={4}
               required
               placeholder="Describe your issue or question in detail..."
-              className="w-full rounded-lg border border-[#eeeff1] px-2.5 py-2 text-[14px] placeholder:text-[rgba(0,0,0,0.35)] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
+              className="w-full rounded-lg border border-[#eeeff1] px-2.5 py-2 text-[14px] placeholder:text-[rgba(0,0,0,0.35)] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-[rgba(15,24,65,0.12)]"
             />
           </div>
 
           <button
             type="submit"
-            className="inline-flex h-9 items-center justify-center rounded-lg bg-[#242529] px-4 text-[13px] font-medium text-white transition-colors hover:bg-[#111214]"
+            className="inline-flex h-9 items-center justify-center rounded-lg bg-[var(--torqi-orange)] px-4 text-[13px] font-medium text-white transition-colors hover:bg-[var(--torqi-orange-hover)]"
           >
             Send message
           </button>

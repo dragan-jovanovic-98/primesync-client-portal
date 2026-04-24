@@ -35,7 +35,7 @@ export async function findOrCreateAuthUser(params: {
     email_confirm: true,
     user_metadata: {
       full_name: params.fullName,
-      source: "primesync-client-portal",
+      source: "torqi-client-portal",
     },
   });
 

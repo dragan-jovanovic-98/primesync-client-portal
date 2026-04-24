@@ -25,8 +25,8 @@ function CustomTooltip({
 
 export function HoursPieChart({ data }: { data: HoursChartData }) {
   const chartData = [
-    { name: "Business Hours", value: data.businessHours, color: "#242529" },
-    { name: "After Hours", value: data.afterHours, color: "#d4d4d8" },
+    { name: "Business Hours", value: data.businessHours, color: "#0F1841" },
+    { name: "After Hours", value: data.afterHours, color: "#F19A1F" },
   ].filter((item) => item.value > 0);
 
   if (data.total === 0) {
@@ -86,14 +86,14 @@ export function HoursPieChart({ data }: { data: HoursChartData }) {
         </ResponsiveContainer>
         <div className="mt-2 flex items-center gap-6">
           <div className="flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-[3px] bg-[#242529]" />
+            <span className="h-2.5 w-2.5 rounded-[3px] bg-[#0F1841]" />
             <div>
               <span className="text-[14px] font-bold text-[#242529]">{businessPct}%</span>
               <span className="ml-1.5 text-[12px] text-[rgba(0,0,0,0.4)]">Business hours</span>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-[3px] bg-[#d4d4d8]" />
+            <span className="h-2.5 w-2.5 rounded-[3px] bg-[#F19A1F]" />
             <div>
               <span className="text-[14px] font-bold text-[#242529]">{afterPct}%</span>
               <span className="ml-1.5 text-[12px] text-[rgba(0,0,0,0.4)]">After hours</span>

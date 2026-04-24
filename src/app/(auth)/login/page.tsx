@@ -1,4 +1,7 @@
-import Link from "next/link";
+import Image from "next/image";
+import { ArrowRight } from "lucide-react";
+import { BrandPanel } from "@/components/layout/brand-panel";
+import { BRAND } from "@/lib/brand";
 import { signInWithPassword } from "@/app/(auth)/login/actions";
 
 const statusMessages = {
@@ -7,8 +10,8 @@ const statusMessages = {
 } as const;
 
 const errorMessages = {
-  "no-access": "This email is not yet mapped to a portal account. Contact Primesync support.",
-  disabled: "This account has been disabled. Contact Primesync support for access.",
+  "no-access": "This email is not yet mapped to a portal account. Contact TorQi support.",
+  disabled: "This account has been disabled. Contact TorQi support for access.",
   "setup-required": "Your portal access has not been set up yet. Use your setup link first.",
 } as const;
 
@@ -25,102 +28,109 @@ export default async function LoginPage({
   const isError = !!error;
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-white px-4 py-10">
-      <div className="mx-auto grid w-full max-w-4xl gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        {/* Left — feature overview */}
-        <div className="rounded-lg border border-[#eeeff1] bg-[#fbfbfb] p-8">
-          <div className="flex h-6 w-6 items-center justify-center rounded-md bg-[#242529] text-[10px] font-bold text-white">
-            P
-          </div>
-          <h1 className="mt-5 text-[20px] font-semibold tracking-[-0.3px] text-[#242529]">
-            Primesync Client Portal
-          </h1>
-          <p className="mt-2 text-[14px] leading-6 text-[rgba(0,0,0,0.55)]">
-            Visibility and control for your voice agent program. Review calls,
-            manage settings, track billing, and keep your team aligned.
-          </p>
-          <div className="mt-8 space-y-3">
-            {[
-              ["Call visibility", "See what your agents handled, when they transferred, and what happened after hours."],
-              ["Role-based access", "Admins manage billing and users while staff stays focused on daily operations."],
-              ["Operational settings", "Business hours, closures, and support requests are routed through one place."],
-              ["Referral and support", "Referral tools and direct help paths are built into the workspace."],
-            ].map(([title, copy]) => (
-              <div key={title} className="rounded-lg border border-[#eeeff1] bg-white p-4">
-                <p className="text-sm font-medium text-[#242529]">{title}</p>
-                <p className="mt-1 text-[13px] leading-5 text-[rgba(0,0,0,0.55)]">{copy}</p>
-              </div>
-            ))}
-          </div>
+    <main className="grid min-h-screen bg-white lg:grid-cols-[1.2fr_0.8fr]">
+      <BrandPanel />
+
+      <section className="relative flex items-center justify-center px-6 py-14 sm:px-10">
+        {/* Compact brand lockup — mobile only */}
+        <div className="absolute left-6 top-6 flex items-center gap-2 lg:hidden">
+          <Image
+            src="/brand/torqi-favicon-dark.svg"
+            alt=""
+            width={24}
+            height={24}
+            className="h-6 w-6 rounded-md"
+          />
+          <span className="text-[14px] font-semibold tracking-[-0.01em] text-[#242529]">
+            {BRAND.wordmark}
+          </span>
         </div>
 
-        {/* Right — sign-in form */}
-        <div className="flex flex-col justify-center">
-          <h2 className="text-[20px] font-semibold tracking-[-0.3px] text-[#242529]">
-            Sign in
-          </h2>
-          <p className="mt-1 text-[14px] text-[rgba(0,0,0,0.55)]">
-            Enter your email and password to access the portal.
-          </p>
+        <div className="w-full max-w-[380px]">
+          <div style={{ animation: "torqi-fade-up 550ms ease-out both" }}>
+            <h1 className="text-[26px] font-bold tracking-[-0.03em] text-[#242529]">
+              Sign in
+            </h1>
+            <p className="mt-1.5 text-[14px] leading-[1.55] text-[rgba(0,0,0,0.55)]">
+              Welcome back. Enter your credentials to access the portal.
+            </p>
+          </div>
 
           {message ? (
             <p
-              className={`mt-4 rounded-lg border px-3 py-2.5 text-[13px] ${
+              className={`mt-5 rounded-lg border px-3 py-2.5 text-[13px] ${
                 isError
                   ? "border-rose-200 bg-rose-50 text-rose-700"
                   : "border-emerald-200 bg-emerald-50 text-emerald-700"
               }`}
+              style={{ animation: "torqi-fade-up 400ms ease-out both" }}
             >
               {message}
             </p>
           ) : null}
 
-          <form action={signInWithPassword} className="mt-6 space-y-4">
+          <form
+            action={signInWithPassword}
+            className="mt-7 space-y-4"
+            style={{ animation: "torqi-fade-up 600ms ease-out 100ms both" }}
+          >
             <div className="space-y-1.5">
-              <label htmlFor="email" className="text-[13px] text-zinc-500">
+              <label
+                htmlFor="email"
+                className="block text-[13px] font-medium text-[rgba(0,0,0,0.55)]"
+              >
                 Work email
               </label>
               <input
                 id="email"
                 name="email"
                 type="email"
+                autoComplete="email"
                 required
-                className="h-8 w-full rounded-lg border border-[#eeeff1] px-2.5 text-[14px] placeholder:text-[rgba(0,0,0,0.35)] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
                 placeholder="name@company.com"
+                className="h-10 w-full rounded-lg border border-[#eeeff1] bg-white px-3 text-[14px] text-[#242529] placeholder:text-[rgba(0,0,0,0.35)] transition-colors focus:border-[#c9c9cc] focus:outline-none focus:ring-2 focus:ring-[rgba(15,24,65,0.12)]"
               />
             </div>
+
             <div className="space-y-1.5">
-              <label htmlFor="password" className="text-[13px] text-zinc-500">
+              <label
+                htmlFor="password"
+                className="block text-[13px] font-medium text-[rgba(0,0,0,0.55)]"
+              >
                 Password
               </label>
               <input
                 id="password"
                 name="password"
                 type="password"
+                autoComplete="current-password"
                 required
-                className="h-8 w-full rounded-lg border border-[#eeeff1] px-2.5 text-[14px] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
+                className="h-10 w-full rounded-lg border border-[#eeeff1] bg-white px-3 text-[14px] text-[#242529] transition-colors focus:border-[#c9c9cc] focus:outline-none focus:ring-2 focus:ring-[rgba(15,24,65,0.12)]"
               />
             </div>
+
             <button
               type="submit"
-              className="inline-flex h-9 items-center justify-center rounded-lg bg-[#242529] px-4 text-[13px] font-medium text-white transition-colors hover:bg-[#111214]"
+              className="group mt-1 inline-flex h-10 w-full items-center justify-center rounded-lg bg-[var(--torqi-orange)] px-4 text-[13.5px] font-semibold text-white shadow-[0_1px_2px_rgba(241,154,31,0.35)] transition-all hover:bg-[var(--torqi-orange-hover)] active:scale-[0.995]"
             >
-              Sign in
+              <span>Sign in</span>
+              <ArrowRight className="ml-1.5 h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
             </button>
           </form>
 
-          <p className="mt-6 text-[13px] text-[rgba(0,0,0,0.45)]">
-            Need first-time access? Use your portal setup link or ask an admin to
-            create one.
-          </p>
-          <Link
-            href="/"
-            className="mt-2 inline-block text-[13px] font-medium text-[#242529] hover:underline"
+          <div
+            className="mt-7 border-t border-[#eeeff1] pt-5 text-[12.5px] leading-[1.55] text-[rgba(0,0,0,0.5)]"
+            style={{ animation: "torqi-fade-up 600ms ease-out 220ms both" }}
           >
-            Back to portal home
-          </Link>
+            <p className="font-medium text-[rgba(0,0,0,0.6)]">
+              Need first-time access?
+            </p>
+            <p className="mt-0.5 text-[rgba(0,0,0,0.45)]">
+              Use your portal setup link, or ask an admin to send one.
+            </p>
+          </div>
         </div>
-      </div>
+      </section>
     </main>
   );
 }

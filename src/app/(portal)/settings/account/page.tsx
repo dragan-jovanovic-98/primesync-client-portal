@@ -97,7 +97,7 @@ export default async function AccountSettingsPage({
               type="text"
               required
               defaultValue={session.membership.full_name ?? ""}
-              className="h-9 w-full rounded-lg border border-[#eeeff1] px-3 text-[14px] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
+              className="h-9 w-full rounded-lg border border-[#eeeff1] px-3 text-[14px] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-[rgba(15,24,65,0.12)]"
             />
           </div>
 
@@ -143,7 +143,7 @@ export default async function AccountSettingsPage({
               name="currentPassword"
               type="password"
               required
-              className="h-9 w-full rounded-lg border border-[#eeeff1] px-3 text-[14px] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
+              className="h-9 w-full rounded-lg border border-[#eeeff1] px-3 text-[14px] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-[rgba(15,24,65,0.12)]"
             />
           </div>
 
@@ -158,7 +158,7 @@ export default async function AccountSettingsPage({
               name="password"
               type="password"
               minLength={10}
-              className="h-9 w-full rounded-lg border border-[#eeeff1] px-3 text-[14px] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
+              className="h-9 w-full rounded-lg border border-[#eeeff1] px-3 text-[14px] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-[rgba(15,24,65,0.12)]"
             />
             <ul className="mt-1.5 space-y-0.5 text-[12px] text-zinc-500">
               {PORTAL_PASSWORD_RULE_HINTS.map((hint) => (
@@ -179,7 +179,7 @@ export default async function AccountSettingsPage({
               name="confirmPassword"
               type="password"
               minLength={10}
-              className="h-9 w-full rounded-lg border border-[#eeeff1] px-3 text-[14px] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
+              className="h-9 w-full rounded-lg border border-[#eeeff1] px-3 text-[14px] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-[rgba(15,24,65,0.12)]"
             />
           </div>
 

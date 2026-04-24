@@ -91,12 +91,12 @@ export function NotificationBell({
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          "relative flex h-8 w-8 items-center justify-center rounded-md text-[rgba(0,0,0,0.55)] transition-colors",
+          "relative flex h-9 w-9 items-center justify-center rounded-md text-[rgba(0,0,0,0.55)] transition-colors",
           "hover:bg-[#eeeff1] hover:text-[#242529]",
           open && "bg-[#eeeff1] text-[#242529]",
         )}
       >
-        <Bell className="h-4 w-4" />
+        <Bell className="h-[18px] w-[18px]" />
         {unreadCount > 0 ? (
           <span className="absolute -right-0.5 -top-0.5 flex h-[14px] min-w-[14px] items-center justify-center rounded-full bg-rose-500 px-[3px] text-[9px] font-semibold leading-none text-white">
             {badgeText}

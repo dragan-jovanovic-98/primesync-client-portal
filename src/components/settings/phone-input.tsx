@@ -60,7 +60,7 @@ export function PhoneInput({
           value={country}
           onChange={(e) => setCountry(e.target.value)}
           disabled={disabled}
-          className="h-10 w-[90px] shrink-0 rounded-xl border border-[#e9e9ee] px-2 text-[14px] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200 disabled:bg-zinc-50 disabled:text-zinc-500"
+          className="h-10 w-[90px] shrink-0 rounded-xl border border-[#e9e9ee] px-2 text-[14px] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-[rgba(15,24,65,0.12)] disabled:bg-zinc-50 disabled:text-zinc-500"
         >
           {COUNTRY_CODES.map((c) => (
             <option key={c.code} value={c.code}>
@@ -74,7 +74,7 @@ export function PhoneInput({
           onChange={handleChange}
           disabled={disabled}
           placeholder="(555) 123-4567"
-          className="h-10 w-full rounded-xl border border-[#e9e9ee] px-3 text-[14px] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200 disabled:bg-zinc-50 disabled:text-zinc-500"
+          className="h-10 w-full rounded-xl border border-[#e9e9ee] px-3 text-[14px] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-[rgba(15,24,65,0.12)] disabled:bg-zinc-50 disabled:text-zinc-500"
         />
       </div>
     </div>

@@ -39,7 +39,7 @@ function Trend({ value }: { value: number | null }) {
     <span
       className={cn(
         "inline-flex items-center gap-0.5 text-[12px] font-medium",
-        isPositive ? "text-emerald-600" : "text-rose-500",
+        isPositive ? "text-[var(--success)]" : "text-[var(--warning)]",
       )}
     >
       {isPositive ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
@@ -53,7 +53,10 @@ export function KpiCards({ data }: { data: KpiData }) {
     { label: "Total Calls", value: data.totalCalls.toLocaleString(), trend: data.trends.totalCalls },
     {
       label: "Minutes Talked",
-      value: Math.round(data.minutesTalked).toLocaleString(),
+      value: data.minutesTalked.toLocaleString("en-US", {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+      }),
       trend: data.trends.minutesTalked,
     },
     { label: "Avg Duration", value: formatDuration(data.avgDuration), trend: data.trends.avgDuration },

@@ -46,7 +46,7 @@ export default async function BillingSettingsPage({
         <h2 className="text-sm font-medium text-zinc-900">Billing controls</h2>
         <p className="mt-1 text-[13px] text-zinc-500">
           Manage payment methods in Stripe and send plan change requests through
-          Primesync.
+          TorQi.
         </p>
       </div>
 
@@ -116,7 +116,7 @@ export default async function BillingSettingsPage({
         <div className="border-b border-zinc-200 px-4 py-3">
           <h3 className="text-sm font-medium text-zinc-900">Plan changes</h3>
           <p className="mt-1 text-[13px] text-zinc-500">
-            Clients can request plan changes here. Primesync reviews and applies
+            Clients can request plan changes here. TorQi reviews and applies
             them manually.
           </p>
         </div>
@@ -146,7 +146,7 @@ export default async function BillingSettingsPage({
                 name="requestedPlan"
                 type="text"
                 placeholder="Example: Growth Plus"
-                className="h-8 w-full rounded-lg border border-[#eeeff1] px-2.5 text-[14px] placeholder:text-[rgba(0,0,0,0.35)] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
+                className="h-8 w-full rounded-lg border border-[#eeeff1] px-2.5 text-[14px] placeholder:text-[rgba(0,0,0,0.35)] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-[rgba(15,24,65,0.12)]"
               />
             </div>
 
@@ -159,14 +159,14 @@ export default async function BillingSettingsPage({
                 name="message"
                 rows={4}
                 placeholder="Tell us what changed in your usage, team size, or billing needs."
-                className="w-full rounded-lg border border-[#eeeff1] px-3 py-2 text-[14px] placeholder:text-[rgba(0,0,0,0.35)] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
+                className="w-full rounded-lg border border-[#eeeff1] px-3 py-2 text-[14px] placeholder:text-[rgba(0,0,0,0.35)] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-[rgba(15,24,65,0.12)]"
               />
             </div>
 
             <div className="flex justify-end">
               <button
                 type="submit"
-                className="inline-flex h-8 items-center justify-center rounded-lg bg-[#242529] px-4 text-[13px] font-medium text-white transition-colors hover:bg-[#111214]"
+                className="inline-flex h-8 items-center justify-center rounded-lg bg-[var(--torqi-orange)] px-4 text-[13px] font-medium text-white transition-colors hover:bg-[var(--torqi-orange-hover)]"
               >
                 Request plan change
               </button>

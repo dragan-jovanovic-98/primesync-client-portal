@@ -68,8 +68,8 @@ export const SENTIMENT_STYLES: Record<
 > = {
   positive: {
     label: "Positive",
-    pill: "bg-emerald-50 text-emerald-700",
-    dot: "bg-emerald-500",
+    pill: "bg-[rgba(15,118,110,0.1)] text-[#0F766E]",
+    dot: "bg-[#0F766E]",
   },
   neutral: {
     label: "Neutral",
@@ -78,8 +78,8 @@ export const SENTIMENT_STYLES: Record<
   },
   negative: {
     label: "Negative",
-    pill: "bg-rose-50 text-rose-700",
-    dot: "bg-rose-500",
+    pill: "bg-[rgba(194,65,12,0.1)] text-[#C2410C]",
+    dot: "bg-[#C2410C]",
   },
 };
 

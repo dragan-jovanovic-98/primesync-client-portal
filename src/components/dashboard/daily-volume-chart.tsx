@@ -61,7 +61,7 @@ export function DailyVolumeChart({ data }: { data: VolumeByDayData[] }) {
               tickLine={false}
             />
             <Tooltip content={<CustomTooltip />} cursor={{ fill: "transparent" }} />
-            <Bar dataKey="count" fill="#242529" radius={[3, 3, 0, 0]} barSize={28} />
+            <Bar dataKey="count" fill="#0F1841" radius={[3, 3, 0, 0]} barSize={28} />
           </BarChart>
         </ResponsiveContainer>
       </div>

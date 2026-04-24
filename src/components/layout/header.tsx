@@ -87,15 +87,15 @@ export function Header({
         {collapsed && (
           <button
             onClick={() => setCollapsed(false)}
-            className="hidden md:flex h-6 w-6 items-center justify-center rounded-md text-[rgba(0,0,0,0.35)] transition-colors hover:bg-[#eeeff1] hover:text-[#242529]"
+            className="hidden md:flex h-7 w-7 items-center justify-center rounded-md text-[rgba(0,0,0,0.35)] transition-colors hover:bg-[#eeeff1] hover:text-[#242529]"
           >
-            <PanelLeft className="h-4 w-4" />
+            <PanelLeft className="h-[18px] w-[18px]" />
           </button>
         )}
         <MobileNav />
-        <div className="flex items-center gap-1.5">
-          <PageIcon className="h-4 w-4 text-[rgba(0,0,0,0.35)]" />
-          <span className="text-[14px] font-medium text-[#242529]">
+        <div className="flex items-center gap-2">
+          <PageIcon className="h-[18px] w-[18px] text-[var(--torqi-navy)]" />
+          <span className="text-[15px] font-semibold text-[#242529]">
             {config.title}
           </span>
         </div>
@@ -114,7 +114,7 @@ export function Header({
             onClick={() => setMenuOpen((v) => !v)}
             className="flex items-center rounded-full transition-opacity hover:opacity-80 focus:outline-none"
           >
-            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#242529] text-[10px] font-medium text-white">
+            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--torqi-navy)] text-[11px] font-medium text-white">
               {initials}
             </div>
           </button>

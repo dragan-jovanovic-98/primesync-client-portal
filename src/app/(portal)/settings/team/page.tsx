@@ -266,7 +266,7 @@ export default async function TeamSettingsPage({
                 type="text"
                 required
                 placeholder="Jane Doe"
-                className="h-9 w-full rounded-lg border border-[#eeeff1] px-3 text-[13.5px] placeholder:text-[rgba(0,0,0,0.35)] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
+                className="h-9 w-full rounded-lg border border-[#eeeff1] px-3 text-[13.5px] placeholder:text-[rgba(0,0,0,0.35)] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-[rgba(15,24,65,0.12)]"
               />
             </div>
             <div className="space-y-1.5">
@@ -282,7 +282,7 @@ export default async function TeamSettingsPage({
                 type="email"
                 required
                 placeholder="jane@company.com"
-                className="h-9 w-full rounded-lg border border-[#eeeff1] px-3 text-[13.5px] placeholder:text-[rgba(0,0,0,0.35)] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
+                className="h-9 w-full rounded-lg border border-[#eeeff1] px-3 text-[13.5px] placeholder:text-[rgba(0,0,0,0.35)] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-[rgba(15,24,65,0.12)]"
               />
             </div>
             <div className="space-y-1.5">
@@ -296,7 +296,7 @@ export default async function TeamSettingsPage({
                 id="role"
                 name="role"
                 defaultValue="staff"
-                className="h-9 w-full rounded-lg border border-[#eeeff1] bg-white px-3 text-[13.5px] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
+                className="h-9 w-full rounded-lg border border-[#eeeff1] bg-white px-3 text-[13.5px] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-[rgba(15,24,65,0.12)]"
               >
                 <option value="staff">Staff</option>
                 <option value="admin">Admin</option>

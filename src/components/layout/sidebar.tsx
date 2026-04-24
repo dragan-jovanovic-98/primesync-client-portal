@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   CreditCard,
@@ -15,6 +16,7 @@ import {
   UserPlus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { BRAND } from "@/lib/brand";
 import { usePortalUser } from "@/components/providers/portal-provider";
 import { useSidebar } from "@/components/providers/sidebar-provider";
 import { PORTAL_NAV_ITEMS } from "@/lib/permissions";
@@ -85,11 +87,16 @@ export function Sidebar() {
       {/* Workspace header */}
       <div className="flex h-12 shrink-0 items-center justify-between border-b border-[#eeeff1] px-3">
         <Link href="/dashboard" className="flex min-w-0 items-center gap-2">
-          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-[#242529] text-[10px] font-bold text-white">
-            P
-          </div>
-          <span className="truncate text-[14px] font-semibold text-[#242529]">
-            Primesync
+          <Image
+            src="/brand/torqi-favicon-dark.svg"
+            alt=""
+            width={26}
+            height={26}
+            className="h-[26px] w-[26px] shrink-0 rounded-md"
+            priority
+          />
+          <span className="truncate text-[16px] font-bold tracking-[0.025em] text-[#242529]">
+            {BRAND.wordmark}
           </span>
         </Link>
         <button

@@ -100,9 +100,9 @@ export const OUTCOME_TIER_LABELS: Record<OutcomeTier, string> = {
 };
 
 export const OUTCOME_TIER_COLORS: Record<OutcomeTier, string> = {
-  high: "#242529",
-  medium: "#737373",
-  low: "#d4d4d8",
+  high: "#F19A1F",
+  medium: "#0F1841",
+  low: "#a1a1aa",
 };
 
 const OUTCOME_TIERS: Record<OutcomeCategory, OutcomeTier> = {

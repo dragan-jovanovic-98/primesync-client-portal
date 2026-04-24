@@ -83,7 +83,7 @@ export function HourlyVolumeChart({ data }: { data: VolumeByHourData[] }) {
               tickLine={false}
             />
             <Tooltip content={<CustomTooltip />} cursor={{ fill: "transparent" }} />
-            <Bar dataKey="count" fill="#242529" radius={[2, 2, 0, 0]} barSize={12} />
+            <Bar dataKey="count" fill="#0F1841" radius={[2, 2, 0, 0]} barSize={12} />
           </BarChart>
         </ResponsiveContainer>
       </div>

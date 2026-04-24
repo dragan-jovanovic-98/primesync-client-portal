@@ -135,7 +135,7 @@ export default async function OrganizationSettingsPage({
                 name="name"
                 type="text"
                 defaultValue={company?.name ?? ""}
-                className="h-10 w-full rounded-xl border border-[#e9e9ee] px-3 text-[14px] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
+                className="h-10 w-full rounded-xl border border-[#e9e9ee] px-3 text-[14px] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-[rgba(15,24,65,0.12)]"
               />
             </div>
 
@@ -147,7 +147,7 @@ export default async function OrganizationSettingsPage({
                 id="industry"
                 name="industry"
                 defaultValue={company?.industry ?? ""}
-                className="h-10 w-full rounded-xl border border-[#e9e9ee] px-3 text-[14px] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
+                className="h-10 w-full rounded-xl border border-[#e9e9ee] px-3 text-[14px] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-[rgba(15,24,65,0.12)]"
               >
                 <option value="">Select industry</option>
                 {INDUSTRIES.map((industry) => (
@@ -167,7 +167,7 @@ export default async function OrganizationSettingsPage({
                 name="email"
                 type="email"
                 defaultValue={company?.email ?? ""}
-                className="h-10 w-full rounded-xl border border-[#e9e9ee] px-3 text-[14px] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
+                className="h-10 w-full rounded-xl border border-[#e9e9ee] px-3 text-[14px] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-[rgba(15,24,65,0.12)]"
               />
             </div>
 
@@ -179,7 +179,7 @@ export default async function OrganizationSettingsPage({
                 id="timezone"
                 name="timezone"
                 defaultValue={company?.timezone ?? ""}
-                className="h-10 w-full rounded-xl border border-[#e9e9ee] px-3 text-[14px] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
+                className="h-10 w-full rounded-xl border border-[#e9e9ee] px-3 text-[14px] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-[rgba(15,24,65,0.12)]"
               >
                 <option value="">Select timezone</option>
                 {TIMEZONES.map((tz) => (
@@ -237,7 +237,7 @@ export default async function OrganizationSettingsPage({
                   id="reportFrequency"
                   name="reportFrequency"
                   defaultValue={company?.report_frequency ?? "none"}
-                  className="h-10 w-full rounded-xl border border-[#e9e9ee] px-3 text-[14px] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
+                  className="h-10 w-full rounded-xl border border-[#e9e9ee] px-3 text-[14px] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-[rgba(15,24,65,0.12)]"
                 >
                   {reportFrequencies.map((frequency) => (
                     <option key={frequency} value={frequency}>
@@ -297,7 +297,7 @@ export default async function OrganizationSettingsPage({
               min="0"
               step="0.01"
               defaultValue={revenueSettings.averageOrderValue}
-              className="h-10 w-full rounded-xl border border-[#eeeff1] bg-white px-3 text-[14px] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
+              className="h-10 w-full rounded-xl border border-[#eeeff1] bg-white px-3 text-[14px] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-[rgba(15,24,65,0.12)]"
             />
           </div>
 
@@ -316,7 +316,7 @@ export default async function OrganizationSettingsPage({
                         type="checkbox"
                         name={`category_enabled_${category.key}`}
                         defaultChecked={value.enabled}
-                        className="h-4 w-4 rounded border-zinc-300 text-[#242529] focus:ring-zinc-300"
+                        className="h-4 w-4 rounded border-zinc-300 text-[#242529] focus:ring-[rgba(15,24,65,0.15)]"
                       />
                       <span className="text-[14px] font-medium text-zinc-900">
                         {category.label}
@@ -342,7 +342,7 @@ export default async function OrganizationSettingsPage({
                       max="100"
                       step="1"
                       defaultValue={value.closeRate}
-                      className="h-8 w-full rounded-xl border border-[#eeeff1] px-2.5 text-[14px] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
+                      className="h-8 w-full rounded-xl border border-[#eeeff1] px-2.5 text-[14px] focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-[rgba(15,24,65,0.12)]"
                     />
                   </div>
                 </div>

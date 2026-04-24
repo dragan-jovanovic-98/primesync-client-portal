@@ -19,11 +19,11 @@ export function UsageMeter({
   const isPrepaid = planType === "prepaid";
 
   const barColor =
-    usage.usagePercent > 90
-      ? "bg-rose-500"
-      : usage.usagePercent > 70
-        ? "bg-amber-500"
-        : "bg-[#242529]";
+    usage.usagePercent >= 95
+      ? "bg-[#C2410C]"
+      : usage.usagePercent >= 80
+        ? "bg-[#F19A1F]"
+        : "bg-[#0F1841]";
 
   return (
     <div className="rounded-lg border border-[#eeeff1] bg-white">
