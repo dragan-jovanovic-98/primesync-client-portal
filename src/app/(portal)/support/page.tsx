@@ -10,6 +10,7 @@ import {
   Mail,
 } from "lucide-react";
 import { FaqAccordion } from "@/components/support/faq-accordion";
+import { BRAND } from "@/lib/brand";
 
 const QUICK_LINKS = [
   { label: "Billing dashboard", href: "/billing", icon: CreditCard },
@@ -199,10 +200,10 @@ export default async function SupportPage({
               You can also reach us directly at
             </p>
             <a
-              href={`mailto:${process.env.SUPPORT_EMAIL || "support@primesync.co"}`}
+              href={`mailto:${BRAND.supportEmail}`}
               className="text-sm font-medium text-zinc-900 hover:underline"
             >
-              {process.env.SUPPORT_EMAIL || "support@primesync.co"}
+              {BRAND.supportEmail}
             </a>
           </div>
         </div>
