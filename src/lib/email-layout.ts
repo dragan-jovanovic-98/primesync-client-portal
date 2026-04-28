@@ -1,3 +1,4 @@
+import { BRAND } from "./brand";
 import { getSiteUrl } from "./site-url";
 
 type EmailLayoutOptions = {
@@ -9,8 +10,8 @@ type EmailLayoutOptions = {
   footerNote?: string;
 };
 
-const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL || "support@primesync.co";
-const LOGO_URL = `${getSiteUrl()}/brand/primesync-logo.png`;
+const SUPPORT_EMAIL = BRAND.supportEmail;
+const LOGO_URL = `${getSiteUrl()}${BRAND.emailLogoPath}`;
 
 export function wrapEmail({
   preheader,
@@ -78,7 +79,7 @@ export function wrapEmail({
         <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="560" style="width:100%;max-width:560px;background:#ffffff;border:1px solid #eeeff1;border-radius:12px;overflow:hidden;">
           <tr>
             <td style="padding:28px 40px 0;">
-              <img src="${LOGO_URL}" alt="Primesync" width="140" style="display:block;width:140px;max-width:140px;height:auto;border:0;outline:none;text-decoration:none;" />
+              <img src="${LOGO_URL}" alt="${BRAND.wordmark}" width="140" style="display:block;width:140px;max-width:140px;height:auto;border:0;outline:none;text-decoration:none;" />
             </td>
           </tr>
           <tr>
@@ -105,7 +106,7 @@ export function wrapEmail({
           </tr>
         </table>
         <div style="padding:16px 0 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:11px;color:#a1a1aa;line-height:1.5;">
-          &copy; Primesync &middot; AI voice agents for customer-facing businesses
+          ${BRAND.emailFooter}
         </div>
       </td>
     </tr>

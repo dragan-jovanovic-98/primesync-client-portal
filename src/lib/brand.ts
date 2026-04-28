@@ -13,15 +13,14 @@
 export const BRAND = {
   wordmark: "TorQi",
   company: "TorQi",
-  legalFooter: "© TorQi · AI voice agents for customer-facing businesses",
   tagline: "Power Every Call. Drive Every Opportunity.",
 
   logoPath: "/brand/torqi-logo.svg",
   logoDarkPath: "/brand/torqi-logo-dark.png",
   faviconPath: "/brand/torqi-favicon.svg",
-  appleTouchIconPath: "/brand/torqi-apple-touch-icon.png", // generated in Phase 3
-  ogImagePath: "/brand/torqi-og.png", // generated in Phase 3
-  patternPath: "/brand/torqi-pattern.svg", // generated in Phase 3
+  appleTouchIconPath: "/brand/torqi-apple-touch-icon.png",
+  ogImagePath: "/brand/torqi-og.png",
+  patternPath: "/brand/torqi-pattern.svg",
 
   metadataTitle: "TorQi Client Portal",
   metadataDescription: "Client portal for TorQi AI voice agent customers.",
@@ -34,14 +33,14 @@ export const BRAND = {
     white: "#FFFFFF",
   },
 
-  // Email identity — deferred. Email templates (email-layout.ts, email.ts)
-  // remain on Primesync infrastructure for now so deliverability isn't hurt
-  // by a from-name / from-domain mismatch. When TorQi email infra (SendGrid
-  // domain-auth on torqi.ai) is ready, uncomment these and route the email
-  // templates through BRAND.
-  //
-  // supportEmail: process.env.SUPPORT_EMAIL || "support@torqi.ai",
-  // fromEmail:    process.env.FROM_EMAIL    || "portal@torqi.ai",
-  // fromName:     "TorQi Portal",
-  // emailLogoPath: "/brand/torqi-logo-dark.png",
+  // Email identity. Visible branding in the body is TorQi; the technical sender
+  // (from-email + from-name) stays on Primesync infrastructure until SendGrid
+  // domain-auth on torqi.ai is verified end-to-end and the migration wave has
+  // gone out. Flip `fromEmail` / `fromName` here when ready — no other file
+  // needs to change.
+  emailFooter: "© TorQi · Built by Primesync",
+  emailLogoPath: "/brand/torqi-logo.png",
+  supportEmail: process.env.SUPPORT_EMAIL || "support@primesync.co",
+  fromEmail: process.env.FROM_EMAIL || "portal@primesync.co",
+  fromName: "Primesync Portal",
 } as const;

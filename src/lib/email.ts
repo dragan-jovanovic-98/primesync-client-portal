@@ -1,9 +1,11 @@
 import sgMail from "@sendgrid/mail";
+import { BRAND } from "./brand";
 import { escapeHtml, wrapEmail } from "./email-layout";
 
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
-const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL || "support@primesync.co";
-const FROM_EMAIL = "portal@primesync.co";
+const SUPPORT_EMAIL = BRAND.supportEmail;
+const FROM_EMAIL = BRAND.fromEmail;
+const FROM_NAME = BRAND.fromName;
 
 if (SENDGRID_API_KEY) {
   sgMail.setApiKey(SENDGRID_API_KEY);
@@ -54,7 +56,7 @@ export async function sendPortalSupportEmail(options: PortalEmailOptions) {
 
   await sgMail.send({
     to: SUPPORT_EMAIL,
-    from: { email: FROM_EMAIL, name: "Primesync Portal" },
+    from: { email: FROM_EMAIL, name: FROM_NAME },
     replyTo: { email: client.submitterEmail, name: client.submitterName },
     subject: `[Portal] ${subject}`,
     html,
@@ -86,23 +88,22 @@ export async function sendPortalInvitationEmail(
   const bodyHtml = `
     <p style="margin:0 0 12px;">Hi ${safeGreeting},</p>
     <p style="margin:0;">
-      ${safeInviter} invited you to access the Primesync client portal for <strong style="color:#242529;font-weight:600;">${safeCompany}</strong>. Set your password below to sign in and start reviewing your calls, performance, and billing in one place.
+      ${safeInviter} invited you to access the ${BRAND.wordmark} client portal for <strong style="color:#242529;font-weight:600;">${safeCompany}</strong>. Set your password below to sign in and start reviewing your calls, performance, and billing in one place.
     </p>`;
 
   const html = wrapEmail({
-    preheader: `${invitedByName} invited you to ${companyName} on Primesync`,
-    heading: `You're invited to ${safeCompany} on Primesync`,
+    preheader: `${invitedByName} invited you to ${companyName} on ${BRAND.wordmark}`,
+    heading: `You're invited to ${safeCompany} on ${BRAND.wordmark}`,
     bodyHtml,
     ctaLabel: "Set up your account",
     ctaUrl: setupLink,
-    footerNote:
-      "This invitation was sent from the Primesync client portal. If you weren't expecting it, you can safely ignore this email.",
+    footerNote: `This invitation was sent from the ${BRAND.wordmark} client portal. If you weren't expecting it, you can safely ignore this email.`,
   });
 
   await sgMail.send({
     to,
-    from: { email: FROM_EMAIL, name: "Primesync Portal" },
-    subject: `You're invited to ${companyName} on Primesync`,
+    from: { email: FROM_EMAIL, name: FROM_NAME },
+    subject: `You're invited to ${companyName} on ${BRAND.wordmark}`,
     html,
   });
 }
