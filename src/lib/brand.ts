@@ -42,5 +42,5 @@ export const BRAND = {
   emailLogoPath: "/brand/torqi-logo.png",
   supportEmail: process.env.SUPPORT_EMAIL || "support@primesync.co",
   fromEmail: process.env.FROM_EMAIL || "portal@primesync.co",
-  fromName: "Primesync Portal",
+  fromName: "Primesync AI",
 } as const;
