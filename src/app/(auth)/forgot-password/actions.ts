@@ -44,14 +44,16 @@ export async function requestPortalPasswordReset(formData: FormData) {
   const { data, error } = await admin.auth.admin.generateLink({
     type: "recovery",
     email: portalUser.email,
-    options: {
-      redirectTo: `${siteUrl}/auth/confirm?next=/auth/recover`,
-    },
   });
 
-  const actionLink = data?.properties?.action_link;
+  // Use the hashed_token (SSR/PKCE flow) — NOT action_link. action_link points
+  // at Supabase's /verify endpoint which redirects with the session in the URL
+  // fragment (#access_token=...), which our /auth/confirm route can't read
+  // (it parses the query string). Building our own URL with token_hash routes
+  // straight through verifyOtp on the server, which sets cookies cleanly.
+  const hashedToken = data?.properties?.hashed_token;
 
-  if (error || !actionLink) {
+  if (error || !hashedToken) {
     console.error("[portal] generateLink recovery failed:", {
       message: error?.message,
       status: error?.status,
@@ -60,10 +62,14 @@ export async function requestPortalPasswordReset(formData: FormData) {
     redirect("/forgot-password?error=server");
   }
 
+  const resetLink = `${siteUrl}/auth/confirm?token_hash=${encodeURIComponent(
+    hashedToken,
+  )}&type=recovery&next=${encodeURIComponent("/auth/recover")}`;
+
   sendPortalPasswordResetEmail({
     to: portalUser.email,
     fullName: portalUser.full_name,
-    resetLink: actionLink,
+    resetLink,
   }).catch((err) =>
     console.error("[email] portal password reset email failed:", err),
   );
