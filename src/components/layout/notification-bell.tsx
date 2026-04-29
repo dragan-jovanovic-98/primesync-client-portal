@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
 import { Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-is-mobile";
 import {
   markAllPortalNotificationsRead,
   markPortalNotificationRead,
@@ -22,6 +23,7 @@ export function NotificationBell({
   initialUnreadCount,
 }: NotificationBellProps) {
   const router = useRouter();
+  const isMobile = useIsMobile();
   const [notifications, setNotifications] =
     useState<PortalNotification[]>(initialNotifications);
   const [unreadCount, setUnreadCount] = useState(initialUnreadCount);
@@ -36,7 +38,7 @@ export function NotificationBell({
   }, [initialNotifications, initialUnreadCount]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || isMobile) return;
     function handlePointerDown(event: MouseEvent) {
       if (
         containerRef.current &&
@@ -54,7 +56,7 @@ export function NotificationBell({
       document.removeEventListener("mousedown", handlePointerDown);
       document.removeEventListener("keydown", handleEscape);
     };
-  }, [open]);
+  }, [open, isMobile]);
 
   function handleItemClick(notification: PortalNotification) {
     // Optimistic mark-read
@@ -82,6 +84,23 @@ export function NotificationBell({
   }
 
   const badgeText = unreadCount > 9 ? "9+" : String(unreadCount);
+
+  if (isMobile) {
+    return (
+      <Link
+        href="/notifications"
+        aria-label="Notifications"
+        className="relative flex h-9 w-9 items-center justify-center rounded-md text-[rgba(0,0,0,0.55)] transition-colors hover:bg-[#eeeff1] hover:text-[#242529]"
+      >
+        <Bell className="h-[18px] w-[18px]" />
+        {unreadCount > 0 ? (
+          <span className="absolute -right-0.5 -top-0.5 flex h-[14px] min-w-[14px] items-center justify-center rounded-full bg-rose-500 px-[3px] text-[9px] font-semibold leading-none text-white">
+            {badgeText}
+          </span>
+        ) : null}
+      </Link>
+    );
+  }
 
   return (
     <div ref={containerRef} className="relative">

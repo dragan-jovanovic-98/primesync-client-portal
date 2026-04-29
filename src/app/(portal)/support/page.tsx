@@ -140,7 +140,7 @@ export default async function SupportPage({
         </div>
 
         <form action={submitSupportRequest} className="mt-6 space-y-5">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-1.5">
               <label htmlFor="subject" className="text-[13px] text-zinc-500">Subject</label>
               <input

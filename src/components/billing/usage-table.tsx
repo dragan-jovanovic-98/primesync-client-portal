@@ -68,66 +68,99 @@ export function UsageTable({
 
   return (
     <div className="rounded-lg border border-[#eeeff1] bg-white">
-      <div
-        className="grid h-10 items-center gap-x-6 border-b border-[#eeeff1] px-5 text-[11px] font-semibold uppercase tracking-wide text-zinc-500"
-        style={{
-          gridTemplateColumns:
-            "160px 90px 180px minmax(0,1fr) 180px 100px",
-        }}
-      >
-        <div>Call time</div>
-        <div className="text-right tabular-nums">Duration</div>
-        <div>Agent</div>
-        <div>Location</div>
-        <div>Outcome</div>
-        <div className="text-right tabular-nums">Cost</div>
+      {/* Desktop table */}
+      <div className="hidden md:block">
+        <div
+          className="grid h-10 items-center gap-x-6 border-b border-[#eeeff1] px-5 text-[11px] font-semibold uppercase tracking-wide text-zinc-500"
+          style={{
+            gridTemplateColumns:
+              "160px 90px 180px minmax(0,1fr) 180px 100px",
+          }}
+        >
+          <div>Call time</div>
+          <div className="text-right tabular-nums">Duration</div>
+          <div>Agent</div>
+          <div>Location</div>
+          <div>Outcome</div>
+          <div className="text-right tabular-nums">Cost</div>
+        </div>
+
+        <div className="divide-y divide-[#eeeff1]">
+          {result.rows.map((row: BillingUsageCallRow) => {
+            const cost = formatCost(row.clientCost);
+            return (
+              <div
+                key={row.callId}
+                className="grid h-[46px] items-center gap-x-6 px-5 text-[13px] text-[#242529] transition-colors hover:bg-[#fbfbfb]"
+                style={{
+                  gridTemplateColumns:
+                    "160px 90px 180px minmax(0,1fr) 180px 100px",
+                }}
+              >
+                <div className="text-zinc-600">
+                  {row.callDate
+                    ? format(parseISO(row.callDate), "MMM d, h:mm a")
+                    : "—"}
+                </div>
+                <div className="text-right tabular-nums text-zinc-600">
+                  {formatDuration(row.durationSeconds)}
+                </div>
+                <div className="truncate">{row.agentName ?? "—"}</div>
+                <div className="truncate text-zinc-600">
+                  {row.locationName ?? "—"}
+                </div>
+                <div className="truncate text-zinc-600">
+                  {row.outcome ? getOutcomeLabel(row.outcome) : "—"}
+                </div>
+                <div
+                  className="text-right tabular-nums font-medium"
+                  title={
+                    cost === null
+                      ? "Included in subscription"
+                      : undefined
+                  }
+                >
+                  {cost ?? <span className="text-zinc-400">—</span>}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
-      <div className="divide-y divide-[#eeeff1]">
+      {/* Mobile card list — drops location; drops cost for subscription clients (cost is null) */}
+      <div className="divide-y divide-[#eeeff1] md:hidden">
         {result.rows.map((row: BillingUsageCallRow) => {
           const cost = formatCost(row.clientCost);
+          const outcomeLabel = row.outcome ? getOutcomeLabel(row.outcome) : null;
           return (
-            <div
-              key={row.callId}
-              className="grid h-[46px] items-center gap-x-6 px-5 text-[13px] text-[#242529] transition-colors hover:bg-[#fbfbfb]"
-              style={{
-                gridTemplateColumns:
-                  "160px 90px 180px minmax(0,1fr) 180px 100px",
-              }}
-            >
-              <div className="text-zinc-600">
-                {row.callDate
-                  ? format(parseISO(row.callDate), "MMM d, h:mm a")
-                  : "—"}
+            <div key={row.callId} className="flex flex-col gap-1 px-5 py-3">
+              <div className="flex items-center justify-between gap-2">
+                <span className="truncate text-[14px] font-medium text-[#242529]">
+                  {row.callDate
+                    ? format(parseISO(row.callDate), "MMM d, h:mm a")
+                    : "—"}
+                </span>
+                {cost ? (
+                  <span className="shrink-0 tabular-nums text-[14px] font-medium text-[#242529]">
+                    {cost}
+                  </span>
+                ) : null}
               </div>
-              <div className="text-right tabular-nums text-zinc-600">
-                {formatDuration(row.durationSeconds)}
-              </div>
-              <div className="truncate">{row.agentName ?? "—"}</div>
-              <div className="truncate text-zinc-600">
-                {row.locationName ?? "—"}
-              </div>
-              <div className="truncate text-zinc-600">
-                {row.outcome ? getOutcomeLabel(row.outcome) : "—"}
-              </div>
-              <div
-                className="text-right tabular-nums font-medium"
-                title={
-                  cost === null
-                    ? "Included in subscription"
-                    : undefined
-                }
-              >
-                {cost ?? <span className="text-zinc-400">—</span>}
-              </div>
+              <p className="truncate text-[12.5px] text-zinc-500">
+                {row.agentName ?? "—"}
+                {" · "}
+                <span className="tabular-nums">{formatDuration(row.durationSeconds)}</span>
+                {outcomeLabel ? <> · {outcomeLabel}</> : null}
+              </p>
             </div>
           );
         })}
       </div>
 
       {totalPages > 1 ? (
-        <div className="flex items-center justify-between border-t border-[#eeeff1] px-5 py-3">
-          <span className="text-[12px] text-zinc-500">
+        <div className="flex flex-col-reverse items-center justify-between gap-2 border-t border-[#eeeff1] px-5 py-3 md:flex-row">
+          <span className="hidden text-[12px] text-zinc-500 md:inline">
             Showing {start}–{end} of {result.total}
           </span>
           <div className="flex items-center gap-1">
@@ -140,8 +173,12 @@ export function UsageTable({
               )}
             >
               <ChevronLeft className="h-3.5 w-3.5" />
-              Previous
+              <span className="hidden sm:inline">Previous</span>
+              <span className="sm:hidden">Prev</span>
             </Link>
+            <span className="px-2 tabular-nums text-[12.5px] font-medium text-[rgba(0,0,0,0.45)] md:hidden">
+              {result.page} / {totalPages}
+            </span>
             <Link
               href={
                 result.page < totalPages ? pageHref(result.page + 1) : "#"

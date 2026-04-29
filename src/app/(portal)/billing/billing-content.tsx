@@ -34,7 +34,7 @@ export function BillingPageContent({
 }: BillingPageContentProps) {
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-[20px] font-semibold tracking-[-0.3px] text-[#242529]">
             Billing

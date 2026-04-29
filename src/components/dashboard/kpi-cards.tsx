@@ -74,9 +74,15 @@ export function KpiCards({ data }: { data: KpiData }) {
   ];
 
   return (
-    <div className="grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-[#eeeff1] bg-[#eeeff1] sm:grid-cols-2 xl:grid-cols-5">
-      {cards.map((card) => (
-        <div key={card.label} className="flex flex-col justify-between bg-white px-5 py-5">
+    <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-[#eeeff1] bg-[#eeeff1] xl:grid-cols-5">
+      {cards.map((card, index) => (
+        <div
+          key={card.label}
+          className={cn(
+            "flex flex-col justify-between bg-white px-5 py-5",
+            index === 0 && "col-span-2 xl:col-span-1",
+          )}
+        >
           <p className="text-[11px] font-semibold uppercase tracking-wide text-[rgba(0,0,0,0.45)]">
             {card.label}
           </p>

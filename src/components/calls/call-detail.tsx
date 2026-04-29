@@ -69,6 +69,19 @@ export function CallDetail({ call, canWriteReview }: CallDetailProps) {
         </div>
       </div>
 
+      {/* Mobile-only metadata strip — replaces Call Info / Caller cards on phones */}
+      <p className="-mt-2 text-[12.5px] text-zinc-500 md:hidden">
+        {call.call_date ? format(new Date(call.call_date), "MMM d") : "—"}
+        {" · "}
+        {call.call_date ? format(new Date(call.call_date), "h:mm a") : "—"}
+        {" · "}
+        {formatCallDuration(call.call_duration_s)}
+        {" · "}
+        {call.agent_name || "—"}
+        {" · "}
+        {formatPhoneNumber(call.phone_number)}
+      </p>
+
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <section className="rounded-lg border border-[#eeeff1] bg-white">
@@ -109,7 +122,7 @@ export function CallDetail({ call, canWriteReview }: CallDetailProps) {
         </div>
 
         <div className="space-y-6">
-          <section className="rounded-lg border border-[#eeeff1] bg-white">
+          <section className="hidden rounded-lg border border-[#eeeff1] bg-white md:block">
             <div className="border-b border-[#eeeff1] px-5 py-4">
               <h2 className="text-[15px] font-semibold text-[#242529]">Call Info</h2>
             </div>
@@ -145,7 +158,7 @@ export function CallDetail({ call, canWriteReview }: CallDetailProps) {
             </div>
           </section>
 
-          <section className="rounded-lg border border-[#eeeff1] bg-white">
+          <section className="hidden rounded-lg border border-[#eeeff1] bg-white md:block">
             <div className="border-b border-[#eeeff1] px-5 py-4">
               <h2 className="text-[15px] font-semibold text-[#242529]">Caller</h2>
             </div>

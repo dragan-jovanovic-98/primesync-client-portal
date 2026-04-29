@@ -22,7 +22,7 @@ export async function getCalls(filters: CallLogFilters): Promise<CallLogResult> 
   const supabase = await createServerSupabaseClient();
 
   const page = filters.page || 1;
-  const perPage = filters.perPage || 20;
+  const perPage = filters.perPage || 25;
   const offset = (page - 1) * perPage;
   const sortBy = filters.sortBy || "date";
   const sortOrder = filters.sortOrder || "desc";

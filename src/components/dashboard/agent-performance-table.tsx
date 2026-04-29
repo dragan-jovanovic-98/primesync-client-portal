@@ -39,39 +39,64 @@ export function AgentPerformanceTable({ rows }: AgentPerformanceTableProps) {
           No active agents in this time range.
         </div>
       ) : (
-        <div>
-          <div
-            className="grid h-10 items-center border-b border-[#eeeff1] px-5 text-[11px] font-semibold uppercase tracking-wide text-zinc-500"
-            style={{
-              gridTemplateColumns: "minmax(0,1fr) 120px 130px 130px",
-            }}
-          >
-            <div>Agent</div>
-            <div className="text-right tabular-nums">Total calls</div>
-            <div className="text-right tabular-nums">Avg duration</div>
-            <div className="text-right tabular-nums">Expected orders</div>
+        <>
+          {/* Desktop table */}
+          <div className="hidden md:block">
+            <div
+              className="grid h-10 items-center border-b border-[#eeeff1] px-5 text-[11px] font-semibold uppercase tracking-wide text-zinc-500"
+              style={{
+                gridTemplateColumns: "minmax(0,1fr) 120px 130px 130px",
+              }}
+            >
+              <div>Agent</div>
+              <div className="text-right tabular-nums">Total calls</div>
+              <div className="text-right tabular-nums">Avg duration</div>
+              <div className="text-right tabular-nums">Expected orders</div>
+            </div>
+            <div className="divide-y divide-[#eeeff1]">
+              {rows.map((row) => (
+                <div
+                  key={row.assistantId}
+                  className="grid h-10 items-center px-5 text-[13px] text-[#242529] transition-colors hover:bg-[#fbfbfb]"
+                  style={{
+                    gridTemplateColumns: "minmax(0,1fr) 120px 130px 130px",
+                  }}
+                >
+                  <div className="truncate font-medium">{row.agentName}</div>
+                  <div className="text-right tabular-nums">{row.totalCalls}</div>
+                  <div className="text-right tabular-nums text-zinc-600">
+                    {formatAvgDuration(row.avgDurationSeconds)}
+                  </div>
+                  <div className="text-right tabular-nums text-zinc-600">
+                    {formatExpectedOrders(row.expectedOrders)}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="divide-y divide-[#eeeff1]">
+
+          {/* Mobile card list */}
+          <div className="divide-y divide-[#eeeff1] md:hidden">
             {rows.map((row) => (
-              <div
-                key={row.assistantId}
-                className="grid h-10 items-center px-5 text-[13px] text-[#242529] transition-colors hover:bg-[#fbfbfb]"
-                style={{
-                  gridTemplateColumns: "minmax(0,1fr) 120px 130px 130px",
-                }}
-              >
-                <div className="truncate font-medium">{row.agentName}</div>
-                <div className="text-right tabular-nums">{row.totalCalls}</div>
-                <div className="text-right tabular-nums text-zinc-600">
-                  {formatAvgDuration(row.avgDurationSeconds)}
-                </div>
-                <div className="text-right tabular-nums text-zinc-600">
-                  {formatExpectedOrders(row.expectedOrders)}
-                </div>
+              <div key={row.assistantId} className="px-5 py-3.5">
+                <p className="text-[14px] font-medium text-[#242529]">
+                  {row.agentName}
+                </p>
+                <p className="mt-1 text-[12.5px] text-zinc-500">
+                  <span className="tabular-nums">{row.totalCalls}</span> calls ·{" "}
+                  <span className="tabular-nums">
+                    {formatAvgDuration(row.avgDurationSeconds)}
+                  </span>{" "}
+                  avg ·{" "}
+                  <span className="tabular-nums">
+                    {formatExpectedOrders(row.expectedOrders)}
+                  </span>{" "}
+                  expected orders
+                </p>
               </div>
             ))}
           </div>
-        </div>
+        </>
       )}
     </section>
   );

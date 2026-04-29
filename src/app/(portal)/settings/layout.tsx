@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ChevronLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePortalUser } from "@/components/providers/portal-provider";
 import { getSettingsTabs } from "@/lib/permissions";
@@ -82,28 +83,20 @@ export default function SettingsLayout({
         </div>
       </nav>
 
-      {/* Mobile tab bar */}
-      <nav className="fixed top-0 right-0 left-0 z-20 overflow-x-auto border-b border-zinc-200 bg-white p-1 no-scrollbar md:hidden">
-        <div className="flex gap-1">
-          {filteredTabs.map((tab) => (
-            <Link
-              key={tab.href}
-              href={tab.href}
-              className={cn(
-                "shrink-0 rounded-md px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors",
-                pathname === tab.href
-                  ? "bg-zinc-100 text-zinc-900"
-                  : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900",
-              )}
-            >
-              {tab.label}
-            </Link>
-          ))}
-        </div>
-      </nav>
-
       {/* Content */}
-      <div className="min-w-0 flex-1">{children}</div>
+      <div className="min-w-0 flex-1">
+        {/* Mobile back-link to /settings index */}
+        {pathname !== "/settings" ? (
+          <Link
+            href="/settings"
+            className="mb-4 inline-flex items-center gap-1.5 text-[13px] text-zinc-500 transition-colors hover:text-[#242529] md:hidden"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Settings
+          </Link>
+        ) : null}
+        {children}
+      </div>
     </div>
   );
 }

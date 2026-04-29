@@ -77,7 +77,8 @@ export function CallsTable({ calls, total, page, perPage }: CallsTableProps) {
 
   return (
     <div className="space-y-4">
-      <div className="overflow-hidden rounded-lg border border-[#eeeff1] bg-white">
+      {/* Desktop table */}
+      <div className="hidden overflow-hidden rounded-lg border border-[#eeeff1] bg-white md:block">
         <div className="grid border-b border-[#eeeff1]" style={{ gridTemplateColumns: cols }}>
           <div className={cn(cellBase, headerText, "h-10")}>
             <button
@@ -188,8 +189,68 @@ export function CallsTable({ calls, total, page, perPage }: CallsTableProps) {
         })}
       </div>
 
-      <div className="flex items-center justify-between">
-        <p className="text-[13px] text-[rgba(0,0,0,0.45)]">
+      {/* Mobile card list */}
+      <div className="overflow-hidden rounded-lg border border-[#eeeff1] bg-white md:hidden">
+        <div className="divide-y divide-[#eeeff1]">
+          {calls.map((call) => {
+            const badge = getOutcomeBadge(call.call_outcome);
+            const sentiment = normalizeSentiment(call.user_sentiment);
+            const sentimentStyle = sentiment ? SENTIMENT_STYLES[sentiment] : null;
+            const dateLabel = call.call_date
+              ? format(new Date(call.call_date), "MMM d, h:mm a")
+              : "—";
+
+            return (
+              <button
+                key={call.call_id}
+                type="button"
+                onClick={() => router.push(`/calls/${encodeURIComponent(call.call_id)}`)}
+                className="block w-full px-4 py-3 text-left transition-colors active:bg-[#f8f9fa]"
+              >
+                {/* Top line: direction + caller phone + outcome badge */}
+                <div className="flex items-center gap-2">
+                  {call.call_direction === "inbound" ? (
+                    <PhoneIncoming className="h-[14px] w-[14px] shrink-0 text-emerald-600" />
+                  ) : (
+                    <PhoneOutgoing className="h-[14px] w-[14px] shrink-0 text-[rgba(0,0,0,0.3)]" />
+                  )}
+                  <span className="min-w-0 flex-1 truncate text-[14px] font-medium text-[#242529]">
+                    {formatPhoneNumber(call.phone_number)}
+                  </span>
+                  <span
+                    className={cn(
+                      "shrink-0 rounded-md px-2 py-0.5 text-[11.5px] font-medium",
+                      outcomeBadgeStyles(badge.tier),
+                    )}
+                  >
+                    {badge.label}
+                  </span>
+                </div>
+
+                {/* Second line: date/time · duration · agent · sentiment */}
+                <p className="mt-1 truncate text-[12.5px] text-zinc-500">
+                  <span className="tabular-nums">{dateLabel}</span>
+                  {" · "}
+                  <span className="tabular-nums">{formatCallDuration(call.call_duration_s)}</span>
+                  {call.agent_name ? <> · {call.agent_name}</> : null}
+                  {sentimentStyle ? <> · {sentimentStyle.label}</> : null}
+                </p>
+
+                {/* Summary preview */}
+                {call.summary ? (
+                  <p className="mt-1.5 truncate border-t border-[#eeeff1] pt-1.5 text-[13px] text-[rgba(0,0,0,0.55)]">
+                    {call.summary}
+                  </p>
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Pagination — desktop full row, mobile compact centered */}
+      <div className="flex flex-col-reverse items-center justify-between gap-3 md:flex-row">
+        <p className="hidden text-[13px] text-[rgba(0,0,0,0.45)] md:block">
           Showing {(page - 1) * perPage + 1}–{Math.min(page * perPage, total)} of {total}
         </p>
         <div className="flex items-center gap-2">
@@ -199,7 +260,8 @@ export function CallsTable({ calls, total, page, perPage }: CallsTableProps) {
             className="flex h-9 items-center gap-1.5 rounded-lg border border-[#e5e5e5] bg-white px-3 text-[13px] font-medium text-[#525866] transition-colors hover:bg-[#f8f9fa] disabled:pointer-events-none disabled:opacity-40"
           >
             <ChevronLeft className="h-3.5 w-3.5" />
-            Previous
+            <span className="hidden sm:inline">Previous</span>
+            <span className="sm:hidden">Prev</span>
           </button>
           <span className="tabular-nums text-[13px] font-medium text-[rgba(0,0,0,0.45)]">
             {page} / {totalPages}

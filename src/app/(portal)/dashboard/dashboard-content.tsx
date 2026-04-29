@@ -7,6 +7,7 @@ import { CallOutcomesChart } from "@/components/dashboard/call-outcomes-chart";
 import { HoursPieChart } from "@/components/dashboard/hours-pie-chart";
 import { HourlyVolumeChart } from "@/components/dashboard/hourly-volume-chart";
 import { DailyVolumeChart } from "@/components/dashboard/daily-volume-chart";
+import { ChartsMobileSwitcher } from "@/components/dashboard/charts-mobile-switcher";
 import { LocationFilter } from "@/components/dashboard/location-filter";
 import type { DashboardData } from "./actions";
 
@@ -49,16 +50,26 @@ export function DashboardContent({
 
       <KpiCards data={dashboardData.kpiData} />
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <CallOutcomesChart data={dashboardData.chartData.outcomeChartData} />
+      {/* Desktop: full 4-chart layout in two grid rows */}
+      <div className="hidden space-y-4 md:block">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <CallOutcomesChart
+              data={dashboardData.chartData.outcomeChartData}
+            />
+          </div>
+          <HoursPieChart data={dashboardData.chartData.hoursData} />
         </div>
-        <HoursPieChart data={dashboardData.chartData.hoursData} />
+
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <HourlyVolumeChart data={dashboardData.chartData.volumeByHour} />
+          <DailyVolumeChart data={dashboardData.chartData.volumeByDay} />
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <HourlyVolumeChart data={dashboardData.chartData.volumeByHour} />
-        <DailyVolumeChart data={dashboardData.chartData.volumeByDay} />
+      {/* Mobile: tabbed chart switcher */}
+      <div className="md:hidden">
+        <ChartsMobileSwitcher chartData={dashboardData.chartData} />
       </div>
 
       <AgentPerformanceTable rows={dashboardData.agentPerformance} />

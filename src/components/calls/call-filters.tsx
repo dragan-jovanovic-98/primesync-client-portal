@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { CalendarIcon, Check, ChevronLeft, SlidersHorizontal, X } from "lucide-react";
 import { format } from "date-fns";
 import type { DateRange } from "react-day-picker";
 import { Calendar } from "@/components/ui/calendar";
+import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { cn } from "@/lib/utils";
 
 interface CallFiltersProps {
@@ -18,48 +19,20 @@ const btnBase =
 const chipBase =
   "flex h-9 items-center gap-2 rounded-lg bg-[#f5f7fa] px-2.5 text-[14px]";
 
-function useClickOutside(
-  ref: React.RefObject<HTMLElement | null>,
-  handler: () => void,
-  active: boolean,
+const FILTER_KEYS = [
+  "direction",
+  "sentiment",
+  "agent",
+  "outcome",
+  "hours",
+  "reviewed",
+] as const;
+
+function buildFilterDefs(
+  agents: Array<{ value: string; label: string }>,
+  outcomes: Array<{ value: string; label: string }>,
 ) {
-  useEffect(() => {
-    if (!active) return;
-    function handle(event: MouseEvent) {
-      if (ref.current && !ref.current.contains(event.target as Node)) {
-        handler();
-      }
-    }
-    document.addEventListener("mousedown", handle);
-    return () => document.removeEventListener("mousedown", handle);
-  }, [active, handler, ref]);
-}
-
-export function CallFilters({ agents, outcomes }: CallFiltersProps) {
-  const pathname = usePathname();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const [dateOpen, setDateOpen] = useState(false);
-  const [range, setRange] = useState<DateRange | undefined>();
-  const [filterOpen, setFilterOpen] = useState(false);
-  const [filterPage, setFilterPage] = useState<string | null>(null);
-  const [pendingSelections, setPendingSelections] = useState<string[]>([]);
-  const [durationMin, setDurationMin] = useState("");
-  const [durationMax, setDurationMax] = useState("");
-  const dateRef = useRef<HTMLDivElement>(null);
-  const filterRef = useRef<HTMLDivElement>(null);
-
-  useClickOutside(dateRef, useCallback(() => setDateOpen(false), []), dateOpen);
-  useClickOutside(
-    filterRef,
-    useCallback(() => {
-      setFilterOpen(false);
-      setFilterPage(null);
-    }, []),
-    filterOpen,
-  );
-
-  const filterDefs = [
+  return [
     {
       key: "direction",
       label: "Direction",
@@ -97,6 +70,63 @@ export function CallFilters({ agents, outcomes }: CallFiltersProps) {
     },
     { key: "duration", label: "Duration", options: [] as Array<{ value: string; label: string }> },
   ];
+}
+
+function useClickOutside(
+  ref: React.RefObject<HTMLElement | null>,
+  handler: () => void,
+  active: boolean,
+) {
+  useEffect(() => {
+    if (!active) return;
+    function handle(event: MouseEvent) {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        handler();
+      }
+    }
+    document.addEventListener("mousedown", handle);
+    return () => document.removeEventListener("mousedown", handle);
+  }, [active, handler, ref]);
+}
+
+export function CallFilters({ agents, outcomes }: CallFiltersProps) {
+  return (
+    <>
+      <div className="hidden md:contents">
+        <DesktopCallFilters agents={agents} outcomes={outcomes} />
+      </div>
+      <div className="md:hidden">
+        <MobileCallFilters agents={agents} outcomes={outcomes} />
+      </div>
+    </>
+  );
+}
+
+function DesktopCallFilters({ agents, outcomes }: CallFiltersProps) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [dateOpen, setDateOpen] = useState(false);
+  const [range, setRange] = useState<DateRange | undefined>();
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [filterPage, setFilterPage] = useState<string | null>(null);
+  const [pendingSelections, setPendingSelections] = useState<string[]>([]);
+  const [durationMin, setDurationMin] = useState("");
+  const [durationMax, setDurationMax] = useState("");
+  const dateRef = useRef<HTMLDivElement>(null);
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  useClickOutside(dateRef, useCallback(() => setDateOpen(false), []), dateOpen);
+  useClickOutside(
+    filterRef,
+    useCallback(() => {
+      setFilterOpen(false);
+      setFilterPage(null);
+    }, []),
+    filterOpen,
+  );
+
+  const filterDefs = buildFilterDefs(agents, outcomes);
 
   function navigate(params: URLSearchParams) {
     params.set("page", "1");
@@ -184,14 +214,7 @@ export function CallFilters({ agents, outcomes }: CallFiltersProps) {
     return `≤ ${max}s`;
   }
 
-  const activeFilterKeys = [
-    "direction",
-    "sentiment",
-    "agent",
-    "outcome",
-    "hours",
-    "reviewed",
-  ].filter((key) => searchParams.get(key));
+  const activeFilterKeys = FILTER_KEYS.filter((key) => searchParams.get(key));
   const durationDisplay = getDurationDisplay();
   const searchFrom = searchParams.get("from");
   const searchTo = searchParams.get("to");
@@ -447,5 +470,249 @@ export function CallFilters({ agents, outcomes }: CallFiltersProps) {
         ) : null}
       </div>
     </div>
+  );
+}
+
+/* ---------- Mobile filters (bottom sheet) ---------- */
+
+type StagedFilters = {
+  from: string;
+  to: string;
+  direction: string[];
+  sentiment: string[];
+  agent: string[];
+  outcome: string[];
+  hours: string[];
+  reviewed: string[];
+  duration_min: string;
+  duration_max: string;
+};
+
+function readStagedFromParams(searchParams: URLSearchParams): StagedFilters {
+  return {
+    from: searchParams.get("from") ?? "",
+    to: searchParams.get("to") ?? "",
+    direction: (searchParams.get("direction") ?? "").split(",").filter(Boolean),
+    sentiment: (searchParams.get("sentiment") ?? "").split(",").filter(Boolean),
+    agent: (searchParams.get("agent") ?? "").split(",").filter(Boolean),
+    outcome: (searchParams.get("outcome") ?? "").split(",").filter(Boolean),
+    hours: (searchParams.get("hours") ?? "").split(",").filter(Boolean),
+    reviewed: (searchParams.get("reviewed") ?? "").split(",").filter(Boolean),
+    duration_min: searchParams.get("duration_min") ?? "",
+    duration_max: searchParams.get("duration_max") ?? "",
+  };
+}
+
+function MobileCallFilters({ agents, outcomes }: CallFiltersProps) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [open, setOpen] = useState(false);
+  const [staged, setStaged] = useState<StagedFilters>(() =>
+    readStagedFromParams(new URLSearchParams(searchParams.toString())),
+  );
+
+  function openSheet() {
+    // Re-sync staged state from current URL params each time the sheet opens.
+    setStaged(readStagedFromParams(new URLSearchParams(searchParams.toString())));
+    setOpen(true);
+  }
+
+  const filterDefs = useMemo(
+    () => buildFilterDefs(agents, outcomes),
+    [agents, outcomes],
+  );
+
+  const activeCount = useMemo(() => {
+    let count = 0;
+    if (searchParams.get("from") || searchParams.get("to")) count += 1;
+    for (const key of FILTER_KEYS) {
+      if (searchParams.get(key)) count += 1;
+    }
+    if (searchParams.get("duration_min") || searchParams.get("duration_max")) count += 1;
+    return count;
+  }, [searchParams]);
+
+  function toggle(key: keyof StagedFilters, value: string) {
+    setStaged((prev) => {
+      const list = prev[key] as string[];
+      const next = list.includes(value)
+        ? list.filter((v) => v !== value)
+        : [...list, value];
+      return { ...prev, [key]: next };
+    });
+  }
+
+  function setRange(field: "from" | "to" | "duration_min" | "duration_max", value: string) {
+    setStaged((prev) => ({ ...prev, [field]: value }));
+  }
+
+  function reset() {
+    setStaged({
+      from: "",
+      to: "",
+      direction: [],
+      sentiment: [],
+      agent: [],
+      outcome: [],
+      hours: [],
+      reviewed: [],
+      duration_min: "",
+      duration_max: "",
+    });
+  }
+
+  function apply() {
+    const params = new URLSearchParams(searchParams.toString());
+
+    if (staged.from) params.set("from", staged.from);
+    else params.delete("from");
+    if (staged.to) params.set("to", staged.to);
+    else params.delete("to");
+
+    for (const key of FILTER_KEYS) {
+      const list = staged[key] as string[];
+      if (list.length > 0) params.set(key, list.join(","));
+      else params.delete(key);
+    }
+
+    if (staged.duration_min) params.set("duration_min", staged.duration_min);
+    else params.delete("duration_min");
+    if (staged.duration_max) params.set("duration_max", staged.duration_max);
+    else params.delete("duration_max");
+
+    params.set("page", "1");
+    router.replace(params.toString() ? `${pathname}?${params.toString()}` : pathname);
+    setOpen(false);
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={openSheet}
+        className={btnBase}
+      >
+        <SlidersHorizontal className="h-4 w-4" />
+        Filters{activeCount > 0 ? ` · ${activeCount}` : ""}
+      </button>
+
+      <BottomSheet open={open} onClose={() => setOpen(false)} title="Filters">
+        <div className="space-y-6 px-5 py-5">
+          {/* Date range */}
+          <section>
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-[rgba(0,0,0,0.45)]">
+              Date range
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="mb-1 block text-[12px] text-zinc-500">From</label>
+                <input
+                  type="date"
+                  value={staged.from}
+                  onChange={(e) => setRange("from", e.target.value)}
+                  className="h-9 w-full rounded-lg border border-[#e5e5e5] px-2.5 text-[14px] text-[#242529] focus:border-[#335cff] focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-[12px] text-zinc-500">To</label>
+                <input
+                  type="date"
+                  value={staged.to}
+                  onChange={(e) => setRange("to", e.target.value)}
+                  className="h-9 w-full rounded-lg border border-[#e5e5e5] px-2.5 text-[14px] text-[#242529] focus:border-[#335cff] focus:outline-none"
+                />
+              </div>
+            </div>
+          </section>
+
+          {/* Multi-select sections */}
+          {filterDefs
+            .filter((def) => def.key !== "duration")
+            .map((def) => (
+              <section key={def.key}>
+                <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-[rgba(0,0,0,0.45)]">
+                  {def.label}
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {def.options.length === 0 ? (
+                    <p className="text-[13px] text-zinc-500">No options available</p>
+                  ) : (
+                    def.options.map((option) => {
+                      const list = staged[def.key as keyof StagedFilters] as string[];
+                      const selected = list.includes(option.value);
+                      return (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() => toggle(def.key as keyof StagedFilters, option.value)}
+                          className={cn(
+                            "h-8 rounded-full border px-3 text-[13px] font-medium transition-colors",
+                            selected
+                              ? "border-[#0F1841] bg-[#0F1841] text-white"
+                              : "border-[#e5e5e5] bg-white text-[#525866] hover:bg-[#f8f9fa]",
+                          )}
+                        >
+                          {option.label}
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              </section>
+            ))}
+
+          {/* Duration */}
+          <section>
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-[rgba(0,0,0,0.45)]">
+              Duration (seconds)
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="relative">
+                <label className="mb-1 block text-[12px] text-zinc-500">Min</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={staged.duration_min}
+                  onChange={(e) => setRange("duration_min", e.target.value)}
+                  placeholder="0"
+                  className="h-9 w-full rounded-lg border border-[#e5e5e5] px-2.5 text-[14px] text-[#242529] placeholder:text-[rgba(0,0,0,0.3)] focus:border-[#335cff] focus:outline-none"
+                />
+              </div>
+              <div className="relative">
+                <label className="mb-1 block text-[12px] text-zinc-500">Max</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={staged.duration_max}
+                  onChange={(e) => setRange("duration_max", e.target.value)}
+                  placeholder="∞"
+                  className="h-9 w-full rounded-lg border border-[#e5e5e5] px-2.5 text-[14px] text-[#242529] placeholder:text-[rgba(0,0,0,0.3)] focus:border-[#335cff] focus:outline-none"
+                />
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <BottomSheet.Footer>
+          <div className="flex items-center justify-between gap-3">
+            <button
+              type="button"
+              onClick={reset}
+              className="text-[13px] font-medium text-[#525866] transition-colors hover:text-[#242529]"
+            >
+              Reset
+            </button>
+            <button
+              type="button"
+              onClick={apply}
+              className="inline-flex h-10 items-center justify-center rounded-lg bg-[#242529] px-5 text-[14px] font-medium text-white transition-colors hover:bg-[#111214]"
+            >
+              Apply filters
+            </button>
+          </div>
+        </BottomSheet.Footer>
+      </BottomSheet>
+    </>
   );
 }

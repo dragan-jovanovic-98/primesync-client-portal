@@ -14,7 +14,7 @@ export function ExportCallsButton() {
     <a
       href={href}
       download
-      className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg border border-[#e5e5e5] px-3 text-[13px] font-medium text-[#525866] transition-colors hover:bg-[#f8f9fa]"
+      className="hidden h-9 shrink-0 items-center gap-1.5 rounded-lg border border-[#e5e5e5] px-3 text-[13px] font-medium text-[#525866] transition-colors hover:bg-[#f8f9fa] md:inline-flex"
     >
       <Download className="h-3.5 w-3.5" />
       Export CSV
