@@ -88,6 +88,22 @@ export function MobileNav() {
             const isActive =
               pathname === item.href || pathname.startsWith(item.href + "/");
 
+            if (item.page === "referrals") {
+              return (
+                <div
+                  key={item.href}
+                  aria-disabled="true"
+                  className="flex h-7 cursor-not-allowed items-center gap-[6px] rounded-[9px] px-2 text-[14px] font-medium text-[rgba(0,0,0,0.4)] select-none"
+                >
+                  <Icon className="h-4 w-4 text-[rgba(0,0,0,0.3)]" />
+                  <span>{item.label}</span>
+                  <span className="ml-auto rounded-full border border-[#F19A1F]/30 bg-[#fef5e7] px-1.5 py-[1px] text-[9.5px] font-semibold uppercase tracking-[0.06em] text-[#B25C0F]">
+                    Coming soon
+                  </span>
+                </div>
+              );
+            }
+
             return (
               <Link
                 key={item.href}

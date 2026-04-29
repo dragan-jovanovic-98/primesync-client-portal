@@ -63,6 +63,27 @@ function NavLink({
   );
 }
 
+function DisabledNavLink({
+  label,
+  icon: Icon,
+}: {
+  label: string;
+  icon: typeof LayoutDashboard;
+}) {
+  return (
+    <div
+      aria-disabled="true"
+      className="group flex h-7 cursor-not-allowed items-center gap-[6px] rounded-[9px] px-2 text-[14px] font-medium text-[rgba(0,0,0,0.4)] select-none"
+    >
+      <Icon className="h-4 w-4 shrink-0 text-[rgba(0,0,0,0.3)] transition-colors duration-150 group-hover:text-[#F19A1F]" />
+      <span>{label}</span>
+      <span className="ml-auto translate-x-1 rounded-full border border-[#F19A1F]/30 bg-[#fef5e7] px-1.5 py-[1px] text-[9.5px] font-semibold uppercase tracking-[0.06em] text-[#B25C0F] opacity-0 transition-all duration-150 ease-out group-hover:translate-x-0 group-hover:opacity-100">
+        Coming soon
+      </span>
+    </div>
+  );
+}
+
 export function Sidebar() {
   const pathname = usePathname();
   const { collapsed, setCollapsed } = useSidebar();
@@ -140,9 +161,7 @@ export function Sidebar() {
             </span>
           </div>
           <div className="space-y-px">
-            {showReferrals && (
-              <NavLink href="/referrals" label="Referrals" icon={Gift} />
-            )}
+            {showReferrals && <DisabledNavLink label="Referrals" icon={Gift} />}
             <NavLink href="/support" label="Help & Support" icon={LifeBuoy} />
           </div>
         </div>
