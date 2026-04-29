@@ -107,3 +107,47 @@ export async function sendPortalInvitationEmail(
     html,
   });
 }
+
+type PortalPasswordResetEmailOptions = {
+  to: string;
+  fullName: string | null;
+  resetLink: string;
+};
+
+export async function sendPortalPasswordResetEmail(
+  options: PortalPasswordResetEmailOptions,
+): Promise<void> {
+  if (!SENDGRID_API_KEY) {
+    console.warn(
+      "[email] SENDGRID_API_KEY not set, skipping password reset email",
+    );
+    return;
+  }
+
+  const { to, fullName, resetLink } = options;
+  const greetingName = fullName?.trim() || "there";
+  const safeGreeting = escapeHtml(greetingName);
+
+  const bodyHtml = `
+    <p style="margin:0 0 12px;">Hi ${safeGreeting},</p>
+    <p style="margin:0;">
+      We received a request to reset the password on your ${BRAND.wordmark} portal account. Click below to choose a new password. This link expires in about an hour.
+    </p>`;
+
+  const html = wrapEmail({
+    preheader: "Use this link to set a new password.",
+    heading: "Reset your password",
+    bodyHtml,
+    ctaLabel: "Set a new password",
+    ctaUrl: resetLink,
+    footerNote:
+      "If you didn't request this, you can safely ignore this email — your current password will keep working.",
+  });
+
+  await sgMail.send({
+    to,
+    from: { email: FROM_EMAIL, name: FROM_NAME },
+    subject: `Reset your ${BRAND.wordmark} password`,
+    html,
+  });
+}
