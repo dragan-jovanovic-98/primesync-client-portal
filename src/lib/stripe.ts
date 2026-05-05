@@ -3,10 +3,22 @@ type StripeRequestOptions = {
   params?: Record<string, string>;
 };
 
+/**
+ * Returns the Stripe live secret key for the TorQi (primary) account.
+ *
+ * Reads `STRIPE_SECRET_KEY_PRIMARY` first, falling back to the legacy
+ * `STRIPE_SECRET_KEY` env var. The fallback exists so the portal keeps working
+ * during the env-var rename window — once `_PRIMARY` is set everywhere and the
+ * old un-suffixed var is deleted in Vercel, the fallback is harmless dead code.
+ *
+ * The portal is single-account by design: it always talks to TorQi Stripe.
+ * The `stripe_account` discriminator on the client only affects the admin
+ * dashboard's webhook + billing routes, not the portal.
+ */
 function getStripeSecretKey() {
-  const key = process.env.STRIPE_SECRET_KEY;
+  const key = process.env.STRIPE_SECRET_KEY_PRIMARY ?? process.env.STRIPE_SECRET_KEY;
   if (!key) {
-    throw new Error("Missing STRIPE_SECRET_KEY.");
+    throw new Error("Missing STRIPE_SECRET_KEY_PRIMARY (or fallback STRIPE_SECRET_KEY).");
   }
   return key;
 }
@@ -43,5 +55,5 @@ export async function stripeRequest<T>(
 }
 
 export function hasStripeSecretKey() {
-  return Boolean(process.env.STRIPE_SECRET_KEY);
+  return Boolean(process.env.STRIPE_SECRET_KEY_PRIMARY ?? process.env.STRIPE_SECRET_KEY);
 }
