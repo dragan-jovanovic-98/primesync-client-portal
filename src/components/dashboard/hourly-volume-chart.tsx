@@ -40,7 +40,7 @@ function CustomTooltip({
   return (
     <div className="rounded-lg border border-[#eeeff1] bg-white px-3 py-2 shadow-sm">
       <p className="text-[13px] font-semibold text-[#242529]">{formatHourFull(hour)}</p>
-      <p className="text-[12px] text-[rgba(0,0,0,0.55)]">
+      <p className="text-[12px] text-[rgba(0,0,0,0.7)]">
         {payload[0].value} call{payload[0].value !== 1 ? "s" : ""}
       </p>
       {isBusinessHours ? (

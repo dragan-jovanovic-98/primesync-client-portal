@@ -54,7 +54,7 @@ export default async function LoginPage({
             <h1 className="text-[26px] font-bold tracking-[-0.03em] text-[#242529]">
               Sign in
             </h1>
-            <p className="mt-1.5 text-[14px] leading-[1.55] text-[rgba(0,0,0,0.55)]">
+            <p className="mt-1.5 text-[14px] leading-[1.55] text-[rgba(0,0,0,0.7)]">
               Welcome back. Enter your credentials to access the portal.
             </p>
           </div>
@@ -80,7 +80,7 @@ export default async function LoginPage({
             <div className="space-y-1.5">
               <label
                 htmlFor="email"
-                className="block text-[13px] font-medium text-[rgba(0,0,0,0.55)]"
+                className="block text-[13px] font-medium text-[rgba(0,0,0,0.7)]"
               >
                 Work email
               </label>
@@ -99,7 +99,7 @@ export default async function LoginPage({
               <div className="flex items-baseline justify-between">
                 <label
                   htmlFor="password"
-                  className="block text-[13px] font-medium text-[rgba(0,0,0,0.55)]"
+                  className="block text-[13px] font-medium text-[rgba(0,0,0,0.7)]"
                 >
                   Password
                 </label>

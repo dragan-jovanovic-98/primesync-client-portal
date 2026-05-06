@@ -36,10 +36,10 @@ function CustomTooltip({
     <div className="rounded-lg border border-[#eeeff1] bg-white px-3 py-2.5 shadow-sm">
       <p className="text-[13px] font-semibold text-[#242529]">{item.name}</p>
       <div className="mt-1 space-y-0.5">
-        <p className="text-[12px] text-[rgba(0,0,0,0.55)]">
+        <p className="text-[12px] text-[rgba(0,0,0,0.7)]">
           {item.count} call{item.count !== 1 ? "s" : ""}
         </p>
-        <p className="text-[12px] text-[rgba(0,0,0,0.55)]">
+        <p className="text-[12px] text-[rgba(0,0,0,0.7)]">
           {formatCurrency(item.estimatedValue)} est. value
         </p>
       </div>
@@ -54,7 +54,7 @@ export function CallOutcomesChart({ data }: { data: OutcomeChartData[] }) {
         <p className="text-[11px] font-semibold uppercase tracking-wide text-[rgba(0,0,0,0.45)]">
           Call Outcomes
         </p>
-        <p className="mt-2 text-[13px] text-[rgba(0,0,0,0.55)]">No data for this period.</p>
+        <p className="mt-2 text-[13px] text-[rgba(0,0,0,0.7)]">No data for this period.</p>
       </div>
     );
   }

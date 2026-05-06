@@ -38,7 +38,7 @@ export function DashboardContent({
           <h1 className="text-[20px] font-semibold tracking-[-0.3px] text-[#242529]">
             {getGreeting()}, {firstName}.
           </h1>
-          <p className="mt-0.5 text-[14px] font-medium text-[rgba(0,0,0,0.55)]">
+          <p className="mt-0.5 text-[14px] font-medium text-[rgba(0,0,0,0.7)]">
             {activeAgents} agent{activeAgents !== 1 ? "s" : ""} active
           </p>
         </div>

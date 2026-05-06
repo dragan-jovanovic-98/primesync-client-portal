@@ -102,7 +102,7 @@ export function LocationFilter({ locations }: LocationFilterProps) {
           "flex h-8 items-center gap-1.5 rounded-lg border border-[#eeeff1] bg-[#fbfbfb] px-3 text-[13px] font-medium transition-colors",
           selectedCount > 0 || open
             ? "text-[#242529]"
-            : "text-[rgba(0,0,0,0.55)] hover:text-[#242529]",
+            : "text-[rgba(0,0,0,0.7)] hover:text-[#242529]",
         )}
       >
         <MapPin className="h-3.5 w-3.5" />

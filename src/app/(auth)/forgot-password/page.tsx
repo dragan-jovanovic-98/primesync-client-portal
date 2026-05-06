@@ -64,7 +64,7 @@ export default async function ForgotPasswordPage({
             <h1 className="text-[26px] font-bold tracking-[-0.03em] text-[#242529]">
               Forgot your password?
             </h1>
-            <p className="mt-1.5 text-[14px] leading-[1.55] text-[rgba(0,0,0,0.55)]">
+            <p className="mt-1.5 text-[14px] leading-[1.55] text-[rgba(0,0,0,0.7)]">
               Enter the email on your account and we&apos;ll send you a link to choose a new one.
             </p>
           </div>
@@ -90,7 +90,7 @@ export default async function ForgotPasswordPage({
             <div className="space-y-1.5">
               <label
                 htmlFor="email"
-                className="block text-[13px] font-medium text-[rgba(0,0,0,0.55)]"
+                className="block text-[13px] font-medium text-[rgba(0,0,0,0.7)]"
               >
                 Work email
               </label>

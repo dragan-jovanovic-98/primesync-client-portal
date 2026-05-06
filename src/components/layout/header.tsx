@@ -125,7 +125,7 @@ export function Header({
               <p className="text-[14px] font-medium text-[#242529]">
                 {fullName || email}
               </p>
-              <p className="text-[13px] text-[rgba(0,0,0,0.55)]">{email}</p>
+              <p className="text-[13px] text-[rgba(0,0,0,0.7)]">{email}</p>
             </div>
             <div className="mx-2 h-px bg-[#eeeff1]" />
             <button

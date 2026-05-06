@@ -106,7 +106,7 @@ export function CallDetail({ call, canWriteReview }: CallDetailProps) {
                   Your browser does not support audio playback.
                 </audio>
               ) : (
-                <p className="text-[14px] text-[rgba(0,0,0,0.55)]">Recording unavailable.</p>
+                <p className="text-[14px] text-[rgba(0,0,0,0.7)]">Recording unavailable.</p>
               )}
             </div>
           </section>
@@ -208,7 +208,7 @@ function TranscriptChat({ transcript }: { transcript: string | null }) {
 
   if (turns.length === 0) {
     return (
-      <p className="text-[14px] text-[rgba(0,0,0,0.55)]">
+      <p className="text-[14px] text-[rgba(0,0,0,0.7)]">
         No transcript available.
       </p>
     );

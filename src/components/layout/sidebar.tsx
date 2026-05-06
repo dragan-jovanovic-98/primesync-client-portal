@@ -49,7 +49,7 @@ function NavLink({
         "flex h-7 items-center gap-[6px] rounded-[9px] px-2 text-[14px] font-medium transition-colors",
         isActive
           ? "bg-[#eeeff1] text-[#242529]"
-          : "text-[rgba(0,0,0,0.55)] hover:bg-[#eeeff1]/60 hover:text-[#242529]",
+          : "text-[rgba(0,0,0,0.7)] hover:bg-[#eeeff1]/60 hover:text-[#242529]",
       )}
     >
       <Icon
@@ -139,7 +139,7 @@ export function Sidebar() {
 
       {/* Core navigation */}
       <nav className="flex-1 overflow-y-auto px-2">
-        <div className="space-y-px">
+        <div className="space-y-1">
           {coreItems.map((item) => {
             const Icon = icons[item.page] ?? LayoutDashboard;
             return (
@@ -156,11 +156,11 @@ export function Sidebar() {
         {/* Resources section */}
         <div className="mt-5">
           <div className="px-2 pb-1.5">
-            <span className="text-[12px] font-medium text-[rgba(0,0,0,0.55)] tracking-[-0.12px]">
+            <span className="text-[12px] font-medium text-[rgba(0,0,0,0.7)] tracking-[-0.12px]">
               Resources
             </span>
           </div>
-          <div className="space-y-px">
+          <div className="space-y-1">
             {showReferrals && <DisabledNavLink label="Referrals" icon={Gift} />}
             <NavLink href="/support" label="Help & Support" icon={LifeBuoy} />
           </div>
@@ -172,7 +172,7 @@ export function Sidebar() {
         {role === "admin" && (
           <Link
             href="/settings/team"
-            className="flex h-7 items-center gap-[6px] rounded-[9px] px-2 text-[14px] font-medium text-[rgba(0,0,0,0.55)] transition-colors hover:bg-[#eeeff1]/60 hover:text-[#242529]"
+            className="flex h-7 items-center gap-[6px] rounded-[9px] px-2 text-[14px] font-medium text-[rgba(0,0,0,0.7)] transition-colors hover:bg-[#eeeff1]/60 hover:text-[#242529]"
           >
             <UserPlus className="h-4 w-4 shrink-0 text-[rgba(0,0,0,0.35)]" />
             <span>Invite team members</span>
@@ -180,7 +180,7 @@ export function Sidebar() {
         )}
         <div className="flex items-center gap-[6px] rounded-[9px] px-2 py-1.5">
           <div className="h-2 w-2 shrink-0 rounded-full bg-emerald-500" />
-          <span className="truncate text-[13px] font-medium text-[rgba(0,0,0,0.55)]">
+          <span className="truncate text-[13px] font-medium text-[rgba(0,0,0,0.7)]">
             Active plan
           </span>
         </div>

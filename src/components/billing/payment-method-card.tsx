@@ -36,7 +36,7 @@ export function PaymentMethodCard({ method }: PaymentMethodCardProps) {
         {method && method.last4 ? (
           <div className="flex items-center gap-4">
             <div className="flex h-10 w-14 shrink-0 items-center justify-center rounded-md border border-[#eeeff1] bg-[#fbfbfb]">
-              <CreditCard className="h-4 w-4 text-[rgba(0,0,0,0.55)]" />
+              <CreditCard className="h-4 w-4 text-[rgba(0,0,0,0.7)]" />
             </div>
             <div className="min-w-0">
               <p className="text-[14px] font-medium text-[#242529]">

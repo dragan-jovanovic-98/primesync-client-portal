@@ -31,7 +31,7 @@ export function InvoiceHistory({ invoices }: { invoices: BillingInvoice[] }) {
 
       {invoices.length === 0 ? (
         <div className="px-5 pb-5">
-          <p className="text-[14px] text-[rgba(0,0,0,0.55)]">No invoices yet.</p>
+          <p className="text-[14px] text-[rgba(0,0,0,0.7)]">No invoices yet.</p>
         </div>
       ) : (
         <>

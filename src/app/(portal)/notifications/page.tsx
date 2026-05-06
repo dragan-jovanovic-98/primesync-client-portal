@@ -32,7 +32,7 @@ export default async function NotificationsPage({
         <h1 className="text-[20px] font-semibold tracking-[-0.3px] text-[#242529]">
           Notifications
         </h1>
-        <p className="mt-0.5 text-[14px] text-[rgba(0,0,0,0.55)]">
+        <p className="mt-0.5 text-[14px] text-[rgba(0,0,0,0.7)]">
           {feed.totalCount === 0
             ? "You don't have any notifications yet."
             : feed.unreadCount > 0

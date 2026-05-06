@@ -15,7 +15,7 @@ export default async function ReferralsPage() {
         </div>
         <div className="space-y-3 px-5 pb-5">
           <div className="flex items-center gap-2">
-            <code className="flex-1 rounded-md border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-[rgba(0,0,0,0.55)]">
+            <code className="flex-1 rounded-md border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-[rgba(0,0,0,0.7)]">
               Referral link will appear once connected
             </code>
             <button className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#e5e5e5] text-[#525866] transition-colors hover:bg-[#f8f9fa]">
@@ -39,7 +39,7 @@ export default async function ReferralsPage() {
             key={label}
             className="rounded-lg border border-[#eeeff1] bg-white p-5"
           >
-            <p className="text-sm text-[rgba(0,0,0,0.55)]">{label}</p>
+            <p className="text-sm text-[rgba(0,0,0,0.7)]">{label}</p>
             <p className="mt-1 text-3xl font-bold text-[#242529]">{value}</p>
           </div>
         ))}
@@ -54,7 +54,7 @@ export default async function ReferralsPage() {
         </div>
 
         <div className="px-5 pb-5">
-          <p className="text-[14px] text-[rgba(0,0,0,0.55)]">
+          <p className="text-[14px] text-[rgba(0,0,0,0.7)]">
             No referrals yet.
           </p>
         </div>
@@ -68,7 +68,7 @@ export default async function ReferralsPage() {
             <p className="font-semibold text-[#242529]">
               Referral rewards coming soon
             </p>
-            <p className="text-sm text-[rgba(0,0,0,0.55)]">
+            <p className="text-sm text-[rgba(0,0,0,0.7)]">
               Earn credits and discounts for every business you refer that signs
               up for TorQi.
             </p>

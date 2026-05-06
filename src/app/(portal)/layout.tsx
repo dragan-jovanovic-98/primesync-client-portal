@@ -72,7 +72,7 @@ export default async function PortalLayout({
               initialUnreadCount={notificationFeed.unreadCount}
             />
             {showReconsentBanner && <ReconsentBanner />}
-            <main className="flex-1 overflow-auto bg-white px-4 py-6 sm:px-8">
+            <main className="flex-1 overflow-auto bg-[#fafafa] px-4 py-6 sm:px-8">
               <div className="mx-auto min-w-0 max-w-[1280px]">{children}</div>
             </main>
           </div>

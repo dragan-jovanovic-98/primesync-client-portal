@@ -39,7 +39,7 @@ export function BillingPageContent({
           <h1 className="text-[20px] font-semibold tracking-[-0.3px] text-[#242529]">
             Billing
           </h1>
-          <p className="mt-0.5 text-[14px] text-[rgba(0,0,0,0.55)]">
+          <p className="mt-0.5 text-[14px] text-[rgba(0,0,0,0.7)]">
             Plan, usage, and payment details
           </p>
         </div>

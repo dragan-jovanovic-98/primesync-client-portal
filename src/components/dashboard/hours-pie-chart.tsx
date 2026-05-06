@@ -16,7 +16,7 @@ function CustomTooltip({
   return (
     <div className="rounded-lg border border-[#eeeff1] bg-white px-3 py-2 shadow-sm">
       <p className="text-[13px] font-semibold text-[#242529]">{name}</p>
-      <p className="text-[12px] text-[rgba(0,0,0,0.55)]">
+      <p className="text-[12px] text-[rgba(0,0,0,0.7)]">
         {value} call{value !== 1 ? "s" : ""}
       </p>
     </div>
@@ -35,7 +35,7 @@ export function HoursPieChart({ data }: { data: HoursChartData }) {
         <p className="text-[11px] font-semibold uppercase tracking-wide text-[rgba(0,0,0,0.45)]">
           Call Hours
         </p>
-        <p className="mt-2 text-[13px] text-[rgba(0,0,0,0.55)]">No calls in this period.</p>
+        <p className="mt-2 text-[13px] text-[rgba(0,0,0,0.7)]">No calls in this period.</p>
       </div>
     );
   }

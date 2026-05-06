@@ -59,7 +59,7 @@ export default async function SetupPage({
             <h1 className="text-[26px] font-bold tracking-[-0.03em] text-[#242529]">
               Set up your portal access
             </h1>
-            <p className="mt-1.5 text-[14px] leading-[1.55] text-[rgba(0,0,0,0.55)]">
+            <p className="mt-1.5 text-[14px] leading-[1.55] text-[rgba(0,0,0,0.7)]">
               Create your password to access the {BRAND.wordmark} client portal.
             </p>
           </div>
@@ -85,7 +85,7 @@ export default async function SetupPage({
               <div className="space-y-1.5">
                 <label
                   htmlFor="fullName"
-                  className="block text-[13px] font-medium text-[rgba(0,0,0,0.55)]"
+                  className="block text-[13px] font-medium text-[rgba(0,0,0,0.7)]"
                 >
                   Full name
                 </label>
@@ -103,7 +103,7 @@ export default async function SetupPage({
               <div className="space-y-2">
                 <label
                   htmlFor="password"
-                  className="block text-[13px] font-medium text-[rgba(0,0,0,0.55)]"
+                  className="block text-[13px] font-medium text-[rgba(0,0,0,0.7)]"
                 >
                   Password
                 </label>
@@ -116,7 +116,7 @@ export default async function SetupPage({
                   required
                   className="h-10 w-full rounded-lg border border-[#eeeff1] bg-white px-3 text-[14px] text-[#242529] transition-colors focus:border-[#c9c9cc] focus:outline-none focus:ring-2 focus:ring-[rgba(15,24,65,0.12)]"
                 />
-                <ul className="mt-2 space-y-1 text-[12px] leading-[1.55] text-[rgba(0,0,0,0.55)]">
+                <ul className="mt-2 space-y-1 text-[12px] leading-[1.55] text-[rgba(0,0,0,0.7)]">
                   {PORTAL_PASSWORD_RULE_HINTS.map((hint) => (
                     <li key={hint} className="flex items-start gap-2">
                       <span
@@ -132,7 +132,7 @@ export default async function SetupPage({
               <div className="space-y-1.5">
                 <label
                   htmlFor="confirmPassword"
-                  className="block text-[13px] font-medium text-[rgba(0,0,0,0.55)]"
+                  className="block text-[13px] font-medium text-[rgba(0,0,0,0.7)]"
                 >
                   Confirm password
                 </label>
@@ -157,7 +157,7 @@ export default async function SetupPage({
             </form>
           ) : (
             <div
-              className="mt-6 rounded-lg border border-[#eeeff1] bg-[#fbfbfb] p-5 text-[13px] leading-[1.55] text-[rgba(0,0,0,0.55)]"
+              className="mt-6 rounded-lg border border-[#eeeff1] bg-[#fbfbfb] p-5 text-[13px] leading-[1.55] text-[rgba(0,0,0,0.7)]"
               style={{ animation: "torqi-fade-up 500ms ease-out both" }}
             >
               <p className="font-semibold text-[#242529]">Setup link unavailable</p>

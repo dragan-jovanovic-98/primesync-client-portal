@@ -207,7 +207,7 @@ function MultiSelect({
           "flex items-center gap-1.5 rounded-lg border border-[#eeeff1] bg-[#fbfbfb] px-3 py-1.5 text-[13px] font-medium transition-colors",
           count > 0 || open
             ? "text-[#242529]"
-            : "text-[rgba(0,0,0,0.55)] hover:text-[#242529]",
+            : "text-[rgba(0,0,0,0.7)] hover:text-[#242529]",
         )}
       >
         {icon}

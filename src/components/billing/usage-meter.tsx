@@ -76,14 +76,14 @@ export function UsageMeter({
 
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
           <div className="rounded-lg bg-[#f4f4f5] px-3 py-2 text-[13px]">
-            <span className="block text-[rgba(0,0,0,0.55)]">Current cycle</span>
+            <span className="block text-[rgba(0,0,0,0.7)]">Current cycle</span>
             <span className="mt-1 block font-medium text-[#242529]">
               {formatCycleRange(usage.cycleStart, usage.cycleEnd)}
             </span>
           </div>
 
           <div className="rounded-lg bg-[#f4f4f5] px-3 py-2 text-[13px]">
-            <span className="block text-[rgba(0,0,0,0.55)]">
+            <span className="block text-[rgba(0,0,0,0.7)]">
               {isPrepaid ? "Wallet balance" : "Current overage"}
             </span>
             <span className="mt-1 block font-medium text-[#242529]">
@@ -94,7 +94,7 @@ export function UsageMeter({
           </div>
 
           <div className="rounded-lg bg-[#f4f4f5] px-3 py-2 text-[13px]">
-            <span className="block text-[rgba(0,0,0,0.55)]">Active phone lines</span>
+            <span className="block text-[rgba(0,0,0,0.7)]">Active phone lines</span>
             <span className="mt-1 block font-medium text-[#242529]">
               {usage.activePhoneLines}
             </span>

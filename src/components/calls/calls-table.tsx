@@ -70,7 +70,7 @@ export function CallsTable({ calls, total, page, perPage }: CallsTableProps) {
   if (calls.length === 0) {
     return (
       <div className="rounded-lg border border-[#eeeff1] bg-white p-8 text-center">
-        <p className="text-[14px] text-[rgba(0,0,0,0.55)]">No calls match your filters.</p>
+        <p className="text-[14px] text-[rgba(0,0,0,0.7)]">No calls match your filters.</p>
       </div>
     );
   }
@@ -238,7 +238,7 @@ export function CallsTable({ calls, total, page, perPage }: CallsTableProps) {
 
                 {/* Summary preview */}
                 {call.summary ? (
-                  <p className="mt-1.5 truncate border-t border-[#eeeff1] pt-1.5 text-[13px] text-[rgba(0,0,0,0.55)]">
+                  <p className="mt-1.5 truncate border-t border-[#eeeff1] pt-1.5 text-[13px] text-[rgba(0,0,0,0.7)]">
                     {call.summary}
                   </p>
                 ) : null}

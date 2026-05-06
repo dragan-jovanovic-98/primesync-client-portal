@@ -41,7 +41,7 @@ export function MobileNav() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="flex h-8 w-8 items-center justify-center rounded-md text-[rgba(0,0,0,0.55)] transition-colors hover:bg-[#eeeff1] md:hidden"
+        className="flex h-8 w-8 items-center justify-center rounded-md text-[rgba(0,0,0,0.7)] transition-colors hover:bg-[#eeeff1] md:hidden"
       >
         <Menu className="h-5 w-5" />
         <span className="sr-only">Toggle navigation</span>
@@ -113,7 +113,7 @@ export function MobileNav() {
                   "flex h-7 items-center gap-[6px] rounded-[9px] px-2 text-[14px] font-medium transition-colors",
                   isActive
                     ? "bg-[#eeeff1] text-[#242529]"
-                    : "text-[rgba(0,0,0,0.55)] hover:bg-[#eeeff1]/60 hover:text-[#242529]",
+                    : "text-[rgba(0,0,0,0.7)] hover:bg-[#eeeff1]/60 hover:text-[#242529]",
                 )}
               >
                 <Icon

@@ -35,7 +35,7 @@ export function PlanCard({ plan }: { plan: BillingPlan }) {
             ) : null}
           </div>
 
-          <p className="mt-1 text-[14px] text-[rgba(0,0,0,0.55)]">
+          <p className="mt-1 text-[14px] text-[rgba(0,0,0,0.7)]">
             {plan.planType === "prepaid"
               ? `Prepaid plan${plan.prepaidRate !== null ? ` · ${formatBillingCurrency(plan.prepaidRate)}/min` : ""}`
               : plan.planType

@@ -38,7 +38,7 @@ export function ChartsMobileSwitcher({ chartData }: Props) {
                 "h-7 rounded-md text-[12.5px] font-medium transition-all",
                 isActive
                   ? "bg-white text-[#242529] shadow-sm"
-                  : "text-[rgba(0,0,0,0.55)] hover:text-[#242529]",
+                  : "text-[rgba(0,0,0,0.7)] hover:text-[#242529]",
               )}
             >
               {tab.label}

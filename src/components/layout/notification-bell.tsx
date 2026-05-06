@@ -90,7 +90,7 @@ export function NotificationBell({
       <Link
         href="/notifications"
         aria-label="Notifications"
-        className="relative flex h-9 w-9 items-center justify-center rounded-md text-[rgba(0,0,0,0.55)] transition-colors hover:bg-[#eeeff1] hover:text-[#242529]"
+        className="relative flex h-9 w-9 items-center justify-center rounded-md text-[rgba(0,0,0,0.7)] transition-colors hover:bg-[#eeeff1] hover:text-[#242529]"
       >
         <Bell className="h-[18px] w-[18px]" />
         {unreadCount > 0 ? (
@@ -110,7 +110,7 @@ export function NotificationBell({
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          "relative flex h-9 w-9 items-center justify-center rounded-md text-[rgba(0,0,0,0.55)] transition-colors",
+          "relative flex h-9 w-9 items-center justify-center rounded-md text-[rgba(0,0,0,0.7)] transition-colors",
           "hover:bg-[#eeeff1] hover:text-[#242529]",
           open && "bg-[#eeeff1] text-[#242529]",
         )}
