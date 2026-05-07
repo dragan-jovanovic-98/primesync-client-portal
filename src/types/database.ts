@@ -177,6 +177,8 @@ export type Database = {
         Row: {
           agent_name: string
           appointment_setting_agent: boolean | null
+          archived_at: string | null
+          archived_reason: string | null
           assistant_id: string
           company_id: string | null
           llm_id: string | null
@@ -191,6 +193,8 @@ export type Database = {
         Insert: {
           agent_name: string
           appointment_setting_agent?: boolean | null
+          archived_at?: string | null
+          archived_reason?: string | null
           assistant_id: string
           company_id?: string | null
           llm_id?: string | null
@@ -205,6 +209,8 @@ export type Database = {
         Update: {
           agent_name?: string
           appointment_setting_agent?: boolean | null
+          archived_at?: string | null
+          archived_reason?: string | null
           assistant_id?: string
           company_id?: string | null
           llm_id?: string | null
@@ -296,6 +302,7 @@ export type Database = {
           id: string
           is_default: boolean | null
           last4: string | null
+          stripe_account: string
           stripe_payment_method_id: string
         }
         Insert: {
@@ -307,6 +314,7 @@ export type Database = {
           id?: string
           is_default?: boolean | null
           last4?: string | null
+          stripe_account?: string
           stripe_payment_method_id: string
         }
         Update: {
@@ -318,6 +326,7 @@ export type Database = {
           id?: string
           is_default?: boolean | null
           last4?: string | null
+          stripe_account?: string
           stripe_payment_method_id?: string
         }
         Relationships: [
@@ -344,6 +353,7 @@ export type Database = {
           included_minutes_override: number | null
           industry: string | null
           is_active: boolean | null
+          legacy_stripe_customer_id: string | null
           name: string
           onboarded_at: string | null
           overage_rate_min_override: number | null
@@ -357,9 +367,11 @@ export type Database = {
           retell_error_streak: number
           service_emails: string[]
           status: Database["public"]["Enums"]["client_status"]
+          stripe_account: string
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
           timezone: string
+          torqi_consent_at: string | null
           trial_end: string | null
           trial_start: string | null
           wallet_balance: number | null
@@ -377,6 +389,7 @@ export type Database = {
           included_minutes_override?: number | null
           industry?: string | null
           is_active?: boolean | null
+          legacy_stripe_customer_id?: string | null
           name: string
           onboarded_at?: string | null
           overage_rate_min_override?: number | null
@@ -390,9 +403,11 @@ export type Database = {
           retell_error_streak?: number
           service_emails?: string[]
           status?: Database["public"]["Enums"]["client_status"]
+          stripe_account?: string
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           timezone?: string
+          torqi_consent_at?: string | null
           trial_end?: string | null
           trial_start?: string | null
           wallet_balance?: number | null
@@ -410,6 +425,7 @@ export type Database = {
           included_minutes_override?: number | null
           industry?: string | null
           is_active?: boolean | null
+          legacy_stripe_customer_id?: string | null
           name?: string
           onboarded_at?: string | null
           overage_rate_min_override?: number | null
@@ -423,9 +439,11 @@ export type Database = {
           retell_error_streak?: number
           service_emails?: string[]
           status?: Database["public"]["Enums"]["client_status"]
+          stripe_account?: string
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           timezone?: string
+          torqi_consent_at?: string | null
           trial_end?: string | null
           trial_start?: string | null
           wallet_balance?: number | null
@@ -1067,6 +1085,7 @@ export type Database = {
           period_end: string | null
           period_start: string | null
           status: string
+          stripe_account: string
           stripe_customer_id: string | null
           stripe_invoice_id: string
           subscription_id: string | null
@@ -1091,6 +1110,7 @@ export type Database = {
           period_end?: string | null
           period_start?: string | null
           status?: string
+          stripe_account?: string
           stripe_customer_id?: string | null
           stripe_invoice_id: string
           subscription_id?: string | null
@@ -1115,6 +1135,7 @@ export type Database = {
           period_end?: string | null
           period_start?: string | null
           status?: string
+          stripe_account?: string
           stripe_customer_id?: string | null
           stripe_invoice_id?: string
           subscription_id?: string | null
@@ -1200,6 +1221,7 @@ export type Database = {
           id: string
           intro_message: string | null
           location_name: string | null
+          make_scenario_snapshot: Json | null
           make_webhook_url: string | null
           modules_config: Json | null
           notification_emails: string[] | null
@@ -1223,6 +1245,7 @@ export type Database = {
           id?: string
           intro_message?: string | null
           location_name?: string | null
+          make_scenario_snapshot?: Json | null
           make_webhook_url?: string | null
           modules_config?: Json | null
           notification_emails?: string[] | null
@@ -1246,6 +1269,7 @@ export type Database = {
           id?: string
           intro_message?: string | null
           location_name?: string | null
+          make_scenario_snapshot?: Json | null
           make_webhook_url?: string | null
           modules_config?: Json | null
           notification_emails?: string[] | null
@@ -1449,6 +1473,7 @@ export type Database = {
           payment_ts: string
           receipt_url: string | null
           status: string
+          stripe_account: string
           stripe_charge_id: string | null
           stripe_customer_id: string | null
           stripe_payment_intent_id: string | null
@@ -1466,6 +1491,7 @@ export type Database = {
           payment_ts?: string
           receipt_url?: string | null
           status?: string
+          stripe_account?: string
           stripe_charge_id?: string | null
           stripe_customer_id?: string | null
           stripe_payment_intent_id?: string | null
@@ -1483,6 +1509,7 @@ export type Database = {
           payment_ts?: string
           receipt_url?: string | null
           status?: string
+          stripe_account?: string
           stripe_charge_id?: string | null
           stripe_customer_id?: string | null
           stripe_payment_intent_id?: string | null
@@ -1651,6 +1678,47 @@ export type Database = {
           {
             foreignKeyName: "portal_audit_log_target_portal_user_id_fkey"
             columns: ["target_portal_user_id"]
+            isOneToOne: false
+            referencedRelation: "portal_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_consents: {
+        Row: {
+          accepted_at: string
+          document_type: string
+          document_version: string
+          id: string
+          ip_address: unknown
+          metadata: Json
+          portal_user_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          accepted_at?: string
+          document_type: string
+          document_version: string
+          id?: string
+          ip_address?: unknown
+          metadata?: Json
+          portal_user_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          accepted_at?: string
+          document_type?: string
+          document_version?: string
+          id?: string
+          ip_address?: unknown
+          metadata?: Json
+          portal_user_id?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_consents_portal_user_id_fkey"
+            columns: ["portal_user_id"]
             isOneToOne: false
             referencedRelation: "portal_users"
             referencedColumns: ["id"]
@@ -2322,6 +2390,36 @@ export type Database = {
         }
         Relationships: []
       }
+      wallet_baseline_snapshots: {
+        Row: {
+          client_name: string | null
+          company_id: string
+          id: string
+          note: string | null
+          plan_type: string | null
+          taken_at: string
+          wallet_balance: number
+        }
+        Insert: {
+          client_name?: string | null
+          company_id: string
+          id?: string
+          note?: string | null
+          plan_type?: string | null
+          taken_at?: string
+          wallet_balance: number
+        }
+        Update: {
+          client_name?: string | null
+          company_id?: string
+          id?: string
+          note?: string | null
+          plan_type?: string | null
+          taken_at?: string
+          wallet_balance?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       latest_month: {
@@ -2492,6 +2590,20 @@ export type Database = {
         }
         Relationships: []
       }
+      wallet_bug_drift: {
+        Row: {
+          actual_delta: number | null
+          baseline_at: string | null
+          baseline_balance: number | null
+          bug_drift: number | null
+          client_name: string | null
+          current_balance: number | null
+          expected_delta: number | null
+          legit_call_cost_since: number | null
+          legit_payments_since: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       admin_agents_disabled: { Args: never; Returns: Json }
@@ -2529,15 +2641,28 @@ export type Database = {
         }
         Returns: Json
       }
-      admin_client_overview_stats: {
-        Args: {
-          p_company_id: string
-          p_days?: number
-          p_trial_end?: string
-          p_trial_start?: string
-        }
-        Returns: Json
-      }
+      admin_client_overview_stats:
+        | {
+            Args: {
+              p_company_id: string
+              p_days?: number
+              p_trial_end?: string
+              p_trial_start?: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_company_id: string
+              p_days?: number
+              p_end_date?: string
+              p_location_id?: string
+              p_start_date?: string
+              p_trial_end?: string
+              p_trial_start?: string
+            }
+            Returns: Json
+          }
       admin_client_summary_paginated: {
         Args: { p_limit?: number; p_offset?: number }
         Returns: Json
@@ -2569,6 +2694,40 @@ export type Database = {
         Args: { p_from?: string; p_to?: string }
         Returns: Json
       }
+      admin_invite_portal_user: {
+        Args: {
+          p_actor_auth_id: string
+          p_auth_user_id: string
+          p_company_id: string
+          p_email: string
+          p_expires_at: string
+          p_full_name: string
+          p_is_owner: boolean
+          p_role: string
+          p_token_hash: string
+        }
+        Returns: {
+          auth_user_id: string
+          company_id: string
+          created_at: string
+          email: string
+          full_name: string | null
+          has_completed_onboarding: boolean
+          id: string
+          invited_at: string
+          invited_by: string | null
+          is_owner: boolean
+          last_sign_in_at: string | null
+          role: string
+          status: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "portal_users"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       admin_invoices_filtered: {
         Args: {
           p_company_id?: string
@@ -2594,6 +2753,53 @@ export type Database = {
           p_status?: string
         }
         Returns: Json
+      }
+      admin_resend_portal_setup_token: {
+        Args: {
+          p_actor_auth_id: string
+          p_expires_at: string
+          p_portal_user_id: string
+          p_token_hash: string
+        }
+        Returns: {
+          created_at: string
+          created_by: string | null
+          expires_at: string
+          id: string
+          portal_user_id: string
+          token_hash: string
+          used_at: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "portal_setup_tokens"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      admin_revoke_portal_user: {
+        Args: { p_actor_auth_id: string; p_portal_user_id: string }
+        Returns: {
+          auth_user_id: string
+          company_id: string
+          created_at: string
+          email: string
+          full_name: string | null
+          has_completed_onboarding: boolean
+          id: string
+          invited_at: string
+          invited_by: string | null
+          is_owner: boolean
+          last_sign_in_at: string | null
+          role: string
+          status: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "portal_users"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       admin_total_payments_sum: { Args: never; Returns: Json }
       current_portal_company_id: { Args: never; Returns: string }
@@ -2734,6 +2940,7 @@ export type Database = {
           p_duration_max?: number
           p_duration_min?: number
           p_from?: string
+          p_hours?: string
           p_limit?: number
           p_offset?: number
           p_outcome_null?: boolean
@@ -2753,6 +2960,7 @@ export type Database = {
           call_duration_s: number
           call_id: string
           call_outcome: string
+          is_business_hours: boolean
           location_id: string
           phone_number: number
           reviewed: boolean
@@ -2760,6 +2968,16 @@ export type Database = {
           total_count: number
           user_sentiment: string
         }[]
+      }
+      get_portal_dashboard_metrics: {
+        Args: {
+          p_from: string
+          p_location_ids?: string[]
+          p_previous_from: string
+          p_previous_to: string
+          p_to: string
+        }
+        Returns: Json
       }
       get_portal_notifications: {
         Args: { p_limit?: number; p_offset?: number }
@@ -2800,6 +3018,10 @@ export type Database = {
           total_count: number
         }[]
       }
+      get_portal_usage_meter: {
+        Args: { p_cycle_end: string; p_cycle_start: string; p_timezone: string }
+        Returns: Json
+      }
       get_total_client_cost: {
         Args: { input_company_id: string }
         Returns: number
@@ -2839,6 +3061,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      is_admin_user: { Args: never; Returns: boolean }
       is_portal_admin: { Args: never; Returns: boolean }
       mark_all_portal_notifications_read: { Args: never; Returns: undefined }
       mark_portal_notification_read: {
@@ -2886,6 +3109,32 @@ export type Database = {
           transcript: string
           user_sentiment: string
           user_sentiment_num: number
+        }[]
+      }
+      portal_is_business_hours: {
+        Args: {
+          p_assistant_id: string
+          p_call_date: string
+          p_company_id: string
+          p_location_id: string
+        }
+        Returns: boolean
+      }
+      portal_local_time_parts: {
+        Args: { p_ts: string; p_tz: string }
+        Returns: {
+          date_key: string
+          minutes: number
+          month_day: string
+          weekday: string
+        }[]
+      }
+      portal_outcome_info: {
+        Args: { p_outcome: string }
+        Returns: {
+          category: string
+          tier: string
+          value_weight: number
         }[]
       }
       promote_portal_user: {
@@ -3216,4 +3465,3 @@ export const Constants = {
     },
   },
 } as const
-

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { BrandPanel } from "@/components/layout/brand-panel";
+import { ConsentCheckbox } from "@/components/legal/consent-checkbox";
 import { BRAND } from "@/lib/brand";
 import { completePortalSetup } from "@/app/setup/actions";
 import { PORTAL_PASSWORD_RULE_HINTS } from "@/lib/portal/password";
@@ -11,6 +12,8 @@ const messages = {
   mismatch: "The password confirmation did not match.",
   "weak-password":
     "Password does not meet the requirements below. Please update and try again.",
+  "agree-required":
+    "Please confirm you agree to the Terms of Service and Privacy Policy to continue.",
   error: "We could not complete setup. Try the link again or request a new one.",
   expired: "That setup link has expired or was already used. Request a new one.",
   "invalid-token": "That setup link is invalid. Request a fresh portal setup link.",
@@ -145,6 +148,10 @@ export default async function SetupPage({
                   required
                   className="h-10 w-full rounded-lg border border-[#eeeff1] bg-white px-3 text-[14px] text-[#242529] transition-colors focus:border-[#c9c9cc] focus:outline-none focus:ring-2 focus:ring-[rgba(15,24,65,0.12)]"
                 />
+              </div>
+
+              <div className="pt-1">
+                <ConsentCheckbox />
               </div>
 
               <button

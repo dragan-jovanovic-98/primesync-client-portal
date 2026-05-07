@@ -1,4 +1,6 @@
+import { redirect } from "next/navigation";
 import { getPortalNotificationFeed } from "@/app/(portal)/notifications/actions";
+import { getStaleDocumentTypes } from "@/lib/legal/consents";
 import { requirePortalSession } from "@/lib/portal/session";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { PortalProvider } from "@/components/providers/portal-provider";
@@ -43,6 +45,15 @@ export default async function PortalLayout({
   children: React.ReactNode;
 }) {
   const session = await requirePortalSession();
+
+  // Legal-document version-bump gate. If the signed-in user has not accepted
+  // the current LEGAL_VERSIONS for ToS or Privacy, block portal access until
+  // they re-accept on /accept-updates. The interstitial route lives outside
+  // the (portal) group, so this check does not recurse.
+  const staleDocs = await getStaleDocumentTypes(session.membership.id);
+  if (staleDocs.length > 0) {
+    redirect("/accept-updates");
+  }
 
   // Fetch the initial notification feed for admin sessions only. Staff users
   // don't see the bell at all, so there's no reason to run the RPC for them.

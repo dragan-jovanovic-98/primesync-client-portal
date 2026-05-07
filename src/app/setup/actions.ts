@@ -2,6 +2,10 @@
 
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  getRequestIpAndUserAgent,
+  recordConsents,
+} from "@/lib/legal/consents";
 import { validatePortalPassword } from "@/lib/portal/password";
 import {
   getPortalSetupToken,
@@ -13,12 +17,14 @@ export async function completePortalSetup(formData: FormData) {
   const fullNameEntry = formData.get("fullName");
   const passwordEntry = formData.get("password");
   const confirmPasswordEntry = formData.get("confirmPassword");
+  const agreeEntry = formData.get("agree");
 
   const token = typeof tokenEntry === "string" ? tokenEntry.trim() : "";
   const fullName = typeof fullNameEntry === "string" ? fullNameEntry.trim() : "";
   const password = typeof passwordEntry === "string" ? passwordEntry : "";
   const confirmPassword =
     typeof confirmPasswordEntry === "string" ? confirmPasswordEntry : "";
+  const agreed = agreeEntry === "on";
 
   if (!token || !fullName) {
     redirect(`/setup?token=${encodeURIComponent(token)}&status=invalid`);
@@ -33,6 +39,10 @@ export async function completePortalSetup(formData: FormData) {
     redirect(
       `/setup?token=${encodeURIComponent(token)}&status=weak-password&reason=${encodeURIComponent(validation.reason)}`,
     );
+  }
+
+  if (!agreed) {
+    redirect(`/setup?token=${encodeURIComponent(token)}&status=agree-required`);
   }
 
   const setupToken = await getPortalSetupToken(token);
@@ -81,6 +91,18 @@ export async function completePortalSetup(formData: FormData) {
         `/setup?token=${encodeURIComponent(token)}&status=weak-password&reason=${encodeURIComponent(reason)}`,
       );
     }
+    redirect(`/setup?token=${encodeURIComponent(token)}&status=error`);
+  }
+
+  try {
+    const { ip, userAgent } = await getRequestIpAndUserAgent();
+    await recordConsents({
+      portalUser: { id: portalUser.id, company_id: portalUser.company_id },
+      ip,
+      userAgent,
+    });
+  } catch (consentError) {
+    console.error("[portal] setup recordConsents failed:", consentError);
     redirect(`/setup?token=${encodeURIComponent(token)}&status=error`);
   }
 
