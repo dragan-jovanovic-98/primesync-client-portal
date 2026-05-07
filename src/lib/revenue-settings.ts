@@ -38,7 +38,7 @@ export const FIXED_REVENUE_CATEGORIES: Array<{
 ];
 
 export const DEFAULT_REVENUE_SETTINGS: RevenueSettings = {
-  averageOrderValue: 500,
+  averageOrderValue: 250,
   categories: {
     appointment: { enabled: true, closeRate: 50 },
     message: { enabled: true, closeRate: 15 },
