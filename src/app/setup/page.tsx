@@ -13,7 +13,7 @@ const messages = {
   "weak-password":
     "Password does not meet the requirements below. Please update and try again.",
   "agree-required":
-    "Please confirm you agree to the Terms of Service and Privacy Policy to continue.",
+    "Please confirm you agree to the Terms of Service, Privacy Policy, and recurring-billing authorization to continue.",
   error: "We could not complete setup. Try the link again or request a new one.",
   expired: "That setup link has expired or was already used. Request a new one.",
   "invalid-token": "That setup link is invalid. Request a fresh portal setup link.",
@@ -87,6 +87,24 @@ export default async function SetupPage({
 
               <div className="space-y-1.5">
                 <label
+                  htmlFor="email"
+                  className="block text-[13px] font-medium text-[rgba(0,0,0,0.7)]"
+                >
+                  Email
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  value={portalUser.email}
+                  readOnly
+                  aria-readonly
+                  tabIndex={-1}
+                  className="h-10 w-full cursor-not-allowed rounded-lg border border-[#eeeff1] bg-[#fbfbfb] px-3 text-[14px] text-[rgba(0,0,0,0.55)] focus:outline-none"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label
                   htmlFor="fullName"
                   className="block text-[13px] font-medium text-[rgba(0,0,0,0.7)]"
                 >
@@ -151,7 +169,7 @@ export default async function SetupPage({
               </div>
 
               <div className="pt-1">
-                <ConsentCheckbox />
+                <ConsentCheckbox variant="setup" />
               </div>
 
               <button
