@@ -1,10 +1,12 @@
 import { unstable_noStore as noStore } from "next/cache";
-import { getDashboardDateRange } from "@/lib/date-range";
+import { getDashboardDateRange, type DashboardDateRange } from "@/lib/date-range";
 import {
   getOutcomeLabel,
   OUTCOME_TIER_COLORS,
   type OutcomeCategory,
 } from "@/lib/call-outcomes";
+import { isDemoCompany } from "@/lib/demo/demo-companies";
+import { buildSyntheticMetricsPayload } from "@/lib/demo/synthetic-dashboard";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 // Shapes consumed by dashboard-content.tsx and the chart/table components —
@@ -91,7 +93,7 @@ type DashboardKpiPayload = {
   revenue_impact: number | string;
 };
 
-type DashboardMetricsPayload = {
+export type DashboardMetricsPayload = {
   company_timezone: string;
   revenue_settings_configured: boolean;
   current: DashboardKpiPayload;
@@ -243,6 +245,60 @@ function buildAgentPerformance(
   }));
 }
 
+// Demo companies (see lib/demo/demo-companies.ts) render a fully synthetic
+// dashboard — every KPI, chart, and agent row is generated in-process. The RPC
+// and all_client_calls are never touched, so the call log stays real for the
+// live call-in demo. The synthetic payload is run through the same adapters as
+// real data, so the returned DashboardData shape is identical.
+async function buildDemoDashboardData(
+  supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>,
+  companyId: string,
+  range: DashboardDateRange,
+): Promise<DashboardData> {
+  const [agentsResult, locationsResult] = await Promise.all([
+    supabase
+      .from("assistants")
+      .select("assistant_id, agent_name")
+      .eq("status", true)
+      .eq("company_id", companyId)
+      .returns<{ assistant_id: string; agent_name: string | null }[]>(),
+    supabase
+      .from("locations")
+      .select("id, location_name")
+      .returns<DashboardLocationRow[]>(),
+  ]);
+
+  const agents = agentsResult.data ?? [];
+  const payload = buildSyntheticMetricsPayload(range, agents);
+
+  const locationOptions: DashboardLocationOption[] = (locationsResult.data ?? [])
+    .filter((row) => row.location_name)
+    .map((row) => ({ id: row.id, name: row.location_name as string }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  return {
+    activeAgents: agents.length,
+    kpiData: buildKpi(
+      payload.current,
+      payload.previous,
+      payload.revenue_settings_configured,
+    ),
+    agentPerformance: buildAgentPerformance(payload.agent_performance),
+    locationOptions,
+    debug: {
+      rangeKey: range.key,
+      from: range.from.toISOString(),
+      to: range.to.toISOString(),
+    },
+    chartData: {
+      outcomeChartData: buildOutcomeChartData(payload.outcomes),
+      hoursData: buildHoursData(payload.hours_split),
+      volumeByHour: buildHourlyVolume(payload.hourly_volume),
+      volumeByDay: buildDailyVolume(payload.daily_volume),
+    },
+  };
+}
+
 export async function getDashboardData(
   companyId: string,
   searchParams: URLSearchParams,
@@ -250,6 +306,13 @@ export async function getDashboardData(
   noStore();
   const supabase = await createServerSupabaseClient();
   const range = getDashboardDateRange(searchParams);
+
+  // Demo companies bypass the RPC entirely and render synthetic data. The
+  // location filter is intentionally ignored — the demo always shows the full
+  // synthetic picture.
+  if (isDemoCompany(companyId)) {
+    return buildDemoDashboardData(supabase, companyId, range);
+  }
 
   // Multi-select location filter from the URL. Empty/missing means "all
   // locations" — pass NULL so the RPC skips the filter.
