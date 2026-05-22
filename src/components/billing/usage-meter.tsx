@@ -38,11 +38,11 @@ export function UsageMeter({
           <div className="mb-2 flex items-baseline justify-between">
             <span className="text-[14px] font-medium text-[#242529]">Call Minutes</span>
             <div className="text-right">
-              <span className="tabular-nums text-[20px] font-bold tracking-[-0.3px] text-[#242529]">
+              <span className="font-mono tabular-nums text-[20px] font-bold tracking-[-0.3px] text-[#242529]">
                 {formatMinutes(usage.usedMinutes)}
               </span>
               {!isPrepaid && (
-                <span className="ml-1 text-[14px] text-[rgba(0,0,0,0.35)]">
+                <span className="ml-1 font-mono text-[14px] tabular-nums text-[rgba(0,0,0,0.35)]">
                   / {formatMinutes(usage.includedMinutes)}
                 </span>
               )}
@@ -86,7 +86,7 @@ export function UsageMeter({
             <span className="block text-[rgba(0,0,0,0.7)]">
               {isPrepaid ? "Wallet balance" : "Current overage"}
             </span>
-            <span className="mt-1 block font-medium text-[#242529]">
+            <span className="mt-1 block font-mono font-medium tabular-nums text-[#242529]">
               {isPrepaid
                 ? formatBillingCurrency(walletBalance)
                 : `${formatBillingCurrency(usage.overageCost)}${usage.overageRate > 0 ? ` at ${formatBillingCurrency(usage.overageRate)}/min` : ""}`}
@@ -95,7 +95,7 @@ export function UsageMeter({
 
           <div className="rounded-lg bg-[#f4f4f5] px-3 py-2 text-[13px]">
             <span className="block text-[rgba(0,0,0,0.7)]">Active phone lines</span>
-            <span className="mt-1 block font-medium text-[#242529]">
+            <span className="mt-1 block font-mono font-medium tabular-nums text-[#242529]">
               {usage.activePhoneLines}
             </span>
           </div>

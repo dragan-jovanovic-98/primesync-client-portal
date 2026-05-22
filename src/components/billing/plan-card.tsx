@@ -64,7 +64,7 @@ export function PlanCard({ plan }: { plan: BillingPlan }) {
               <BadgeDollarSign className="h-3.5 w-3.5" />
               {plan.planType === "prepaid" ? "Rate" : "Included"}
             </div>
-            <p className="mt-1 text-[14px] font-medium text-[#242529]">
+            <p className="mt-1 font-mono text-[14px] font-medium tabular-nums text-[#242529]">
               {plan.planType === "prepaid"
                 ? plan.prepaidRate !== null
                   ? `${formatBillingCurrency(plan.prepaidRate)}/min`
@@ -80,7 +80,7 @@ export function PlanCard({ plan }: { plan: BillingPlan }) {
               <Wallet className="h-3.5 w-3.5" />
               Wallet
             </div>
-            <p className="mt-1 text-[14px] font-medium text-[#242529]">
+            <p className="mt-1 font-mono text-[14px] font-medium tabular-nums text-[#242529]">
               {formatBillingCurrency(plan.walletBalance)}
             </p>
           </div>

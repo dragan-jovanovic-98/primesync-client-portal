@@ -1,8 +1,8 @@
 "use client";
 
 import {
-  Bar,
-  BarChart,
+  Area,
+  AreaChart,
   CartesianGrid,
   ResponsiveContainer,
   Tooltip,
@@ -55,7 +55,7 @@ export function DailyUsageChart({
           </h2>
           <p className="mt-0.5 text-[12.5px] text-zinc-500">{cycleLabel}</p>
         </div>
-        <p className="text-[12.5px] font-medium text-zinc-600 tabular-nums">
+        <p className="font-mono text-[12.5px] font-medium text-zinc-600 tabular-nums">
           {includedLabel}
         </p>
       </div>
@@ -66,12 +66,18 @@ export function DailyUsageChart({
             No usage data yet for this cycle.
           </div>
         ) : (
-          <div className="h-[220px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
+          <div className="w-full">
+            <ResponsiveContainer width="100%" height={220}>
+              <AreaChart
                 data={chartData}
                 margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
               >
+                <defs>
+                  <linearGradient id="dailyUsageFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#F19A1F" stopOpacity={0.35} />
+                    <stop offset="100%" stopColor="#F19A1F" stopOpacity={0.02} />
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#eeeff1" vertical={false} />
                 <XAxis
                   dataKey="labelShort"
@@ -105,13 +111,16 @@ export function DailyUsageChart({
                   ]}
                   labelFormatter={(label) => String(label)}
                 />
-                <Bar
+                <Area
+                  type="monotone"
                   dataKey="minutesUsed"
-                  fill="#0F1841"
-                  radius={[3, 3, 0, 0]}
-                  maxBarSize={32}
+                  stroke="#F19A1F"
+                  strokeWidth={2.5}
+                  fill="url(#dailyUsageFill)"
+                  dot={false}
+                  activeDot={{ r: 5, fill: "#F19A1F", stroke: "#fff", strokeWidth: 2 }}
                 />
-              </BarChart>
+              </AreaChart>
             </ResponsiveContainer>
           </div>
         )}

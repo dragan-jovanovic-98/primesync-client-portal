@@ -129,7 +129,7 @@ export function CallsTable({ calls, total, page, perPage }: CallsTableProps) {
                 {call.call_date ? format(new Date(call.call_date), "MMM d, h:mm a") : "—"}
               </div>
 
-              <div className={cn(cellBase, "tabular-nums text-[14px] text-[#242529]")}>
+              <div className={cn(cellBase, "font-mono tabular-nums text-[14px] text-[#242529]")}>
                 {formatCallDuration(call.call_duration_s)}
               </div>
 
@@ -145,7 +145,7 @@ export function CallsTable({ calls, total, page, perPage }: CallsTableProps) {
               <div className={cellBase}>
                 <span
                   className={cn(
-                    "inline-flex items-center rounded-md px-2 py-0.5 text-[12px] font-medium",
+                    "inline-flex items-center rounded-lg px-2.5 py-1 text-[12px] font-medium",
                     outcomeBadgeStyles(badge.tier),
                   )}
                 >
@@ -153,7 +153,7 @@ export function CallsTable({ calls, total, page, perPage }: CallsTableProps) {
                 </span>
               </div>
 
-              <div className={cn(cellBase, "text-[14px] text-[#242529]")}>
+              <div className={cn(cellBase, "text-[14px] text-[#0F1841]")}>
                 <span className="truncate">
                   {call.agent_name || <span className={emptyDash}>—</span>}
                 </span>
@@ -163,7 +163,7 @@ export function CallsTable({ calls, total, page, perPage }: CallsTableProps) {
                 {sentimentStyle ? (
                   <span
                     className={cn(
-                      "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[12px] font-medium",
+                      "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-medium",
                       sentimentStyle.pill,
                     )}
                   >
@@ -219,7 +219,7 @@ export function CallsTable({ calls, total, page, perPage }: CallsTableProps) {
                   </span>
                   <span
                     className={cn(
-                      "shrink-0 rounded-md px-2 py-0.5 text-[11.5px] font-medium",
+                      "shrink-0 rounded-lg px-2 py-0.5 text-[11.5px] font-medium",
                       outcomeBadgeStyles(badge.tier),
                     )}
                   >
@@ -231,7 +231,7 @@ export function CallsTable({ calls, total, page, perPage }: CallsTableProps) {
                 <p className="mt-1 truncate text-[12.5px] text-zinc-500">
                   <span className="tabular-nums">{dateLabel}</span>
                   {" · "}
-                  <span className="tabular-nums">{formatCallDuration(call.call_duration_s)}</span>
+                  <span className="font-mono tabular-nums">{formatCallDuration(call.call_duration_s)}</span>
                   {call.agent_name ? <> · {call.agent_name}</> : null}
                   {sentimentStyle ? <> · {sentimentStyle.label}</> : null}
                 </p>

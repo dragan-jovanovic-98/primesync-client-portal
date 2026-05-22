@@ -1,14 +1,13 @@
 "use client";
 
 import {
-  BarChart,
-  Bar,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  ReferenceArea,
 } from "recharts";
 import type { VolumeByHourData } from "@/app/(portal)/dashboard/actions";
 
@@ -65,9 +64,14 @@ export function HourlyVolumeChart({ data }: { data: VolumeByHourData[] }) {
       </div>
       <div className="px-4 pb-4">
         <ResponsiveContainer width="100%" height={220}>
-          <BarChart data={data} margin={{ left: -20, right: 4 }}>
+          <AreaChart data={data} margin={{ left: -20, right: 4 }}>
+            <defs>
+              <linearGradient id="hourlyVolumeFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#F19A1F" stopOpacity={0.35} />
+                <stop offset="100%" stopColor="#F19A1F" stopOpacity={0.02} />
+              </linearGradient>
+            </defs>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f4f4f5" />
-            <ReferenceArea x1={9} x2={17} fill="#f8f9fa" fillOpacity={1} />
             <XAxis
               dataKey="hour"
               tickFormatter={formatHour}
@@ -82,9 +86,17 @@ export function HourlyVolumeChart({ data }: { data: VolumeByHourData[] }) {
               axisLine={false}
               tickLine={false}
             />
-            <Tooltip content={<CustomTooltip />} cursor={{ fill: "transparent" }} />
-            <Bar dataKey="count" fill="#0F1841" radius={[2, 2, 0, 0]} barSize={12} />
-          </BarChart>
+            <Tooltip content={<CustomTooltip />} cursor={{ stroke: "#F19A1F", strokeOpacity: 0.3 }} />
+            <Area
+              type="monotone"
+              dataKey="count"
+              stroke="#F19A1F"
+              strokeWidth={2.5}
+              fill="url(#hourlyVolumeFill)"
+              dot={{ r: 3, fill: "#F19A1F", strokeWidth: 0 }}
+              activeDot={{ r: 5, fill: "#F19A1F", stroke: "#fff", strokeWidth: 2 }}
+            />
+          </AreaChart>
         </ResponsiveContainer>
       </div>
     </div>

@@ -102,7 +102,7 @@ export function UsageTable({
                     ? format(parseISO(row.callDate), "MMM d, h:mm a")
                     : "—"}
                 </div>
-                <div className="text-right tabular-nums text-zinc-600">
+                <div className="text-right font-mono tabular-nums text-zinc-600">
                   {formatDuration(row.durationSeconds)}
                 </div>
                 <div className="truncate">{row.agentName ?? "—"}</div>
@@ -113,7 +113,7 @@ export function UsageTable({
                   {row.outcome ? getOutcomeLabel(row.outcome) : "—"}
                 </div>
                 <div
-                  className="text-right tabular-nums font-medium"
+                  className="text-right font-mono tabular-nums font-medium"
                   title={
                     cost === null
                       ? "Included in subscription"
@@ -142,7 +142,7 @@ export function UsageTable({
                     : "—"}
                 </span>
                 {cost ? (
-                  <span className="shrink-0 tabular-nums text-[14px] font-medium text-[#242529]">
+                  <span className="shrink-0 font-mono tabular-nums text-[14px] font-medium text-[#242529]">
                     {cost}
                   </span>
                 ) : null}
@@ -150,7 +150,7 @@ export function UsageTable({
               <p className="truncate text-[12.5px] text-zinc-500">
                 {row.agentName ?? "—"}
                 {" · "}
-                <span className="tabular-nums">{formatDuration(row.durationSeconds)}</span>
+                <span className="font-mono tabular-nums">{formatDuration(row.durationSeconds)}</span>
                 {outcomeLabel ? <> · {outcomeLabel}</> : null}
               </p>
             </div>

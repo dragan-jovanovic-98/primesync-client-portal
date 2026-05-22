@@ -71,7 +71,7 @@ export function HoursPieChart({ data }: { data: HoursChartData }) {
               <Label
                 content={() => (
                   <text x="50%" y="50%" textAnchor="middle" dominantBaseline="central">
-                    <tspan x="50%" dy="-6" fontSize="22" fontWeight="700" fill="#242529" letterSpacing="-0.5">
+                    <tspan x="50%" dy="-6" fontSize="22" fontWeight="700" fill="#242529" letterSpacing="-0.5" fontFamily="var(--font-geist-mono)">
                       {data.total}
                     </tspan>
                     <tspan x="50%" dy="18" fontSize="11" fontWeight="600" fill="rgba(0,0,0,0.35)" letterSpacing="1">
@@ -88,14 +88,14 @@ export function HoursPieChart({ data }: { data: HoursChartData }) {
           <div className="flex items-center gap-2">
             <span className="h-2.5 w-2.5 rounded-[3px] bg-[#0F1841]" />
             <div>
-              <span className="text-[14px] font-bold text-[#242529]">{businessPct}%</span>
+              <span className="font-mono text-[14px] font-bold tabular-nums text-[#242529]">{businessPct}%</span>
               <span className="ml-1.5 text-[12px] text-[rgba(0,0,0,0.4)]">Business hours</span>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <span className="h-2.5 w-2.5 rounded-[3px] bg-[#F19A1F]" />
             <div>
-              <span className="text-[14px] font-bold text-[#242529]">{afterPct}%</span>
+              <span className="font-mono text-[14px] font-bold tabular-nums text-[#242529]">{afterPct}%</span>
               <span className="ml-1.5 text-[12px] text-[rgba(0,0,0,0.4)]">After hours</span>
             </div>
           </div>

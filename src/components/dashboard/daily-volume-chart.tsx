@@ -1,8 +1,8 @@
 "use client";
 
 import {
-  BarChart,
-  Bar,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -46,7 +46,13 @@ export function DailyVolumeChart({ data }: { data: VolumeByDayData[] }) {
       </div>
       <div className="px-4 pb-4">
         <ResponsiveContainer width="100%" height={220}>
-          <BarChart data={data} margin={{ left: -20, right: 4 }}>
+          <AreaChart data={data} margin={{ left: -20, right: 4 }}>
+            <defs>
+              <linearGradient id="dailyVolumeFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#F19A1F" stopOpacity={0.35} />
+                <stop offset="100%" stopColor="#F19A1F" stopOpacity={0.02} />
+              </linearGradient>
+            </defs>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f4f4f5" />
             <XAxis
               dataKey="day"
@@ -60,9 +66,17 @@ export function DailyVolumeChart({ data }: { data: VolumeByDayData[] }) {
               axisLine={false}
               tickLine={false}
             />
-            <Tooltip content={<CustomTooltip />} cursor={{ fill: "transparent" }} />
-            <Bar dataKey="count" fill="#0F1841" radius={[3, 3, 0, 0]} barSize={28} />
-          </BarChart>
+            <Tooltip content={<CustomTooltip />} cursor={{ stroke: "#F19A1F", strokeOpacity: 0.3 }} />
+            <Area
+              type="monotone"
+              dataKey="count"
+              stroke="#F19A1F"
+              strokeWidth={2.5}
+              fill="url(#dailyVolumeFill)"
+              dot={false}
+              activeDot={{ r: 5, fill: "#F19A1F", stroke: "#fff", strokeWidth: 2 }}
+            />
+          </AreaChart>
         </ResponsiveContainer>
       </div>
     </div>

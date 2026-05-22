@@ -42,7 +42,7 @@ export function CallDetail({ call, canWriteReview }: CallDetailProps) {
         </span>
         <span
           className={cn(
-            "rounded-full px-2.5 py-1 text-[12px] font-medium",
+            "rounded-lg px-2.5 py-1 text-[12px] font-medium",
             outcomeBadgeStyles(badge.tier),
           )}
         >
@@ -141,7 +141,7 @@ export function CallDetail({ call, canWriteReview }: CallDetailProps) {
               </div>
               <div className="flex items-center justify-between gap-4">
                 <span className="text-[rgba(0,0,0,0.45)]">Duration</span>
-                <span className="font-medium text-[#242529]">
+                <span className="font-mono font-medium tabular-nums text-[#242529]">
                   {formatCallDuration(call.call_duration_s)}
                 </span>
               </div>
@@ -164,7 +164,9 @@ export function CallDetail({ call, canWriteReview }: CallDetailProps) {
             </div>
             <div className="space-y-2 px-5 py-4 text-[14px]">
               <p className="font-medium text-[#242529]">{formatPhoneNumber(call.phone_number)}</p>
-              <p className="text-[rgba(0,0,0,0.45)]">Call ID: {call.call_id}</p>
+              <p className="text-[rgba(0,0,0,0.45)]">
+                Call ID: <span className="font-mono">{call.call_id}</span>
+              </p>
             </div>
           </section>
 

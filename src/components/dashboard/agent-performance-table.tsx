@@ -63,11 +63,11 @@ export function AgentPerformanceTable({ rows }: AgentPerformanceTableProps) {
                   }}
                 >
                   <div className="truncate font-medium">{row.agentName}</div>
-                  <div className="text-right tabular-nums">{row.totalCalls}</div>
-                  <div className="text-right tabular-nums text-zinc-600">
+                  <div className="text-right font-mono tabular-nums">{row.totalCalls}</div>
+                  <div className="text-right font-mono tabular-nums text-zinc-600">
                     {formatAvgDuration(row.avgDurationSeconds)}
                   </div>
-                  <div className="text-right tabular-nums text-zinc-600">
+                  <div className="text-right font-mono tabular-nums text-zinc-600">
                     {formatExpectedOrders(row.expectedOrders)}
                   </div>
                 </div>
@@ -83,12 +83,13 @@ export function AgentPerformanceTable({ rows }: AgentPerformanceTableProps) {
                   {row.agentName}
                 </p>
                 <p className="mt-1 text-[12.5px] text-zinc-500">
-                  <span className="tabular-nums">{row.totalCalls}</span> calls ·{" "}
-                  <span className="tabular-nums">
+                  <span className="font-mono tabular-nums">{row.totalCalls}</span>{" "}
+                  calls ·{" "}
+                  <span className="font-mono tabular-nums">
                     {formatAvgDuration(row.avgDurationSeconds)}
                   </span>{" "}
                   avg ·{" "}
-                  <span className="tabular-nums">
+                  <span className="font-mono tabular-nums">
                     {formatExpectedOrders(row.expectedOrders)}
                   </span>{" "}
                   expected orders

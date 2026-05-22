@@ -4,6 +4,7 @@ import { useEffect, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-is-mobile";
 
 interface BottomSheetProps {
   open: boolean;
@@ -20,6 +21,13 @@ function BottomSheetRoot({
   children,
   className,
 }: BottomSheetProps) {
+  // The sheet is a mobile-only surface (root is `md:hidden`). `useIsMobile()`
+  // returns null on the server and first client paint, so both render `null`
+  // (no hydration mismatch), then the portal mounts only once we've confirmed
+  // we're actually on mobile. createPortal into document.body during the very
+  // first client render — before this gate — was the prior hydration bug.
+  const isMobile = useIsMobile();
+
   useEffect(() => {
     if (!open || typeof document === "undefined") return;
     const previous = document.body.style.overflow;
@@ -38,7 +46,7 @@ function BottomSheetRoot({
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
-  if (typeof document === "undefined") return null;
+  if (!isMobile) return null;
 
   return createPortal(
     <div

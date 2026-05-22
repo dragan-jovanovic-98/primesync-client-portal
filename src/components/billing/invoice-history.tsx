@@ -64,7 +64,7 @@ export function InvoiceHistory({ invoices }: { invoices: BillingInvoice[] }) {
                   <div
                     className={cn(
                       cellBase,
-                      "py-2 text-[14px] font-medium tabular-nums text-[#242529]",
+                      "py-2 font-mono text-[14px] font-medium tabular-nums text-[#242529]",
                     )}
                   >
                     {formatBillingCurrency(invoice.amount, invoice.currency)}
@@ -114,7 +114,7 @@ export function InvoiceHistory({ invoices }: { invoices: BillingInvoice[] }) {
                       {formatShortBillingDate(invoice.createdAt)}
                     </span>
                     <div className="flex items-center gap-2">
-                      <span className="tabular-nums text-[14px] font-medium text-[#242529]">
+                      <span className="font-mono tabular-nums text-[14px] font-medium text-[#242529]">
                         {formatBillingCurrency(invoice.amount, invoice.currency)}
                       </span>
                       <span
