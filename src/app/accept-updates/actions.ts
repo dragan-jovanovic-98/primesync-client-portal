@@ -5,6 +5,7 @@ import {
   getRequestIpAndUserAgent,
   recordConsents,
 } from "@/lib/legal/consents";
+import { ForbiddenError } from "@/lib/permissions";
 import { requirePortalSession } from "@/lib/portal/session";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
@@ -24,6 +25,12 @@ function buildRedirect(
 
 export async function completeConsentReacceptance(formData: FormData) {
   const session = await requirePortalSession();
+  // An admin observer (read-only "view as client") must never accept the client's
+  // terms. They shouldn't reach here (the layout skips the consent gate for them),
+  // but guard against manual navigation.
+  if (session.isImpersonating) {
+    throw new ForbiddenError("impersonation session cannot accept terms");
+  }
   const nextPath = safeNextPath(formData.get("next"));
 
   if (formData.get("agree") !== "on") {
