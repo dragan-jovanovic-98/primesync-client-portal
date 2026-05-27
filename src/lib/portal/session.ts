@@ -67,6 +67,15 @@ const getAuthState = cache(async () => {
   const appMeta = (user.app_metadata as Record<string, unknown> | null) ?? {};
   const impersonateCompanyId = appMeta.impersonate_company_id;
   if (typeof impersonateCompanyId === "string" && impersonateCompanyId.length > 0) {
+    // Hard cap on observer session lifetime (defense beyond the Return-to-Admin revoke).
+    // `impersonate_started_at` (epoch ms) is stamped by the admin mint and survives token
+    // refresh, so a forgotten/abandoned observer tab can't live indefinitely. Sessions
+    // minted before this field existed have no cap (graceful) until their next launch.
+    const MAX_IMPERSONATION_MS = 60 * 60 * 1000; // 60 minutes
+    const startedAt = Number(appMeta.impersonate_started_at);
+    if (Number.isFinite(startedAt) && Date.now() - startedAt > MAX_IMPERSONATION_MS) {
+      return { user, membership: null, role: null, isImpersonating: false, impersonatorId: null };
+    }
     const impersonatorId = appMeta.impersonator_id;
     return {
       user,
