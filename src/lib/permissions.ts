@@ -133,6 +133,15 @@ const ROLE_CAPABILITIES: Record<PortalRole, PortalCapability[]> = {
   ],
 };
 
+// Capabilities permitted while impersonating (admin read-only "view as client").
+// Derived as every read capability — anything not explicitly a read is denied under
+// impersonation (fail-safe: new write capabilities are blocked by default).
+// Note: `notifications.mark_read` is a WRITE and is correctly excluded (it does not
+// end in ".read").
+export const OBSERVER_READ_CAPABILITIES: ReadonlySet<PortalCapability> = new Set(
+  ROLE_CAPABILITIES.admin.filter((c) => c.endsWith(".read")),
+);
+
 export const PORTAL_NAV_ITEMS: Array<{
   href: string;
   label: string;

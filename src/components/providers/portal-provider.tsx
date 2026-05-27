@@ -8,6 +8,8 @@ type PortalUser = {
   email: string;
   fullName: string | null;
   role: PortalRole;
+  /** True in an admin read-only "view as client" observer session. */
+  isImpersonating: boolean;
 };
 
 const PortalContext = createContext<PortalUser | null>(null);

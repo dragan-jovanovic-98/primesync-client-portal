@@ -7,6 +7,7 @@ import { PortalProvider } from "@/components/providers/portal-provider";
 import { SidebarProvider } from "@/components/providers/sidebar-provider";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
+import { ImpersonationBanner } from "@/components/layout/impersonation-banner";
 import { ReconsentBanner } from "@/components/billing/reconsent-banner";
 
 /**
@@ -50,9 +51,13 @@ export default async function PortalLayout({
   // the current LEGAL_VERSIONS for ToS or Privacy, block portal access until
   // they re-accept on /accept-updates. The interstitial route lives outside
   // the (portal) group, so this check does not recurse.
-  const staleDocs = await getStaleDocumentTypes(session.membership.id);
-  if (staleDocs.length > 0) {
-    redirect("/accept-updates");
+  // Skip the legal-consent gate for admin observer (read-only "view as client")
+  // sessions — they must not be funneled into, or able to accept, the client's ToS.
+  if (!session.isImpersonating) {
+    const staleDocs = await getStaleDocumentTypes(session.membership.id);
+    if (staleDocs.length > 0) {
+      redirect("/accept-updates");
+    }
   }
 
   // Fetch the initial notification feed for admin sessions only. Staff users
@@ -62,10 +67,24 @@ export default async function PortalLayout({
       ? await getPortalNotificationFeed(10, 0)
       : { notifications: [], totalCount: 0, unreadCount: 0 };
 
-  const showReconsentBanner = await shouldShowReconsentBanner(
-    session.membership.company_id,
-    session.role,
-  );
+  const showReconsentBanner =
+    !session.isImpersonating &&
+    (await shouldShowReconsentBanner(
+      session.membership.company_id,
+      session.role,
+    ));
+
+  // When impersonating, resolve the client's display name for the banner.
+  let impersonationClientName: string | null = null;
+  if (session.isImpersonating) {
+    const admin = createAdminClient();
+    const { data } = await admin
+      .from("clients")
+      .select("name")
+      .eq("company_id", session.membership.company_id)
+      .maybeSingle<{ name: string | null }>();
+    impersonationClientName = data?.name ?? session.membership.company_id;
+  }
 
   return (
     <PortalProvider
@@ -73,6 +92,7 @@ export default async function PortalLayout({
       email={session.membership.email}
       fullName={session.membership.full_name}
       role={session.role}
+      isImpersonating={session.isImpersonating}
     >
       <SidebarProvider>
         <div className="flex h-dvh">
@@ -82,6 +102,9 @@ export default async function PortalLayout({
               initialNotifications={notificationFeed.notifications}
               initialUnreadCount={notificationFeed.unreadCount}
             />
+            {session.isImpersonating && impersonationClientName && (
+              <ImpersonationBanner clientName={impersonationClientName} />
+            )}
             {showReconsentBanner && <ReconsentBanner />}
             <main className="flex-1 overflow-auto bg-[#faf8f5] px-4 py-6 sm:px-8">
               <div className="mx-auto min-w-0 max-w-[1280px]">{children}</div>
