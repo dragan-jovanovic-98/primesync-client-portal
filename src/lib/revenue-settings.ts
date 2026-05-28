@@ -38,16 +38,16 @@ export const FIXED_REVENUE_CATEGORIES: Array<{
 ];
 
 export const DEFAULT_REVENUE_SETTINGS: RevenueSettings = {
-  averageOrderValue: 250,
+  averageOrderValue: 300,
   categories: {
-    appointment: { enabled: true, closeRate: 50 },
+    appointment: { enabled: true, closeRate: 60 },
     message: { enabled: true, closeRate: 15 },
-    quote: { enabled: true, closeRate: 20 },
-    urgent: { enabled: true, closeRate: 50 },
-    towing: { enabled: true, closeRate: 50 },
-    transfer: { enabled: true, closeRate: 20 },
+    quote: { enabled: true, closeRate: 25 },
+    urgent: { enabled: true, closeRate: 25 },
+    towing: { enabled: true, closeRate: 60 },
+    transfer: { enabled: true, closeRate: 0 },
     voicemail: { enabled: false, closeRate: 5 },
-    general_inquiry: { enabled: true, closeRate: 10 },
+    general_inquiry: { enabled: true, closeRate: 5 },
     reschedule_cancel: { enabled: false, closeRate: 0 },
     other: { enabled: false, closeRate: 0 },
   },
