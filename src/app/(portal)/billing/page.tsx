@@ -15,6 +15,9 @@ export default async function BillingPage({
     typeof value === "string" ? value : undefined;
 
   const tab = str(params.tab) === "usage" ? "usage" : "overview";
+  const topupParam = str(params.topup);
+  const topupStatus =
+    topupParam === "success" ? "success" : topupParam === "cancelled" ? "cancelled" : null;
 
   const data = await getBillingData(session.membership.company_id);
 
@@ -84,6 +87,7 @@ export default async function BillingPage({
       locationOptions={locationOptions}
       pathname="/billing"
       searchParamsString={searchParamsString}
+      topupStatus={topupStatus}
     />
   );
 }

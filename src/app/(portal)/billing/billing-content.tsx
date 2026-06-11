@@ -2,6 +2,7 @@ import type {
   BillingPageData,
   BillingUsageResult,
 } from "@/lib/billing";
+import { AddFundsCard } from "@/components/billing/add-funds-card";
 import { BillingTabs } from "@/components/billing/billing-tabs";
 import { DailyUsageChart } from "@/components/billing/daily-usage-chart";
 import { ExportUsageButton } from "@/components/billing/export-usage-button";
@@ -21,6 +22,7 @@ interface BillingPageContentProps {
   locationOptions: UsageFilterOption[];
   pathname: string;
   searchParamsString: string;
+  topupStatus: "success" | "cancelled" | null;
 }
 
 export function BillingPageContent({
@@ -31,9 +33,24 @@ export function BillingPageContent({
   locationOptions,
   pathname,
   searchParamsString,
+  topupStatus,
 }: BillingPageContentProps) {
+  const isPrepaid = data.plan.planType === "prepaid";
+
   return (
     <div className="space-y-6">
+      {topupStatus === "success" ? (
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-[13px] text-emerald-900">
+          <strong className="font-semibold">Payment received.</strong> Your wallet balance updates
+          automatically within a few moments, and a receipt has been added to your invoice history.
+        </div>
+      ) : null}
+      {topupStatus === "cancelled" ? (
+        <div className="rounded-lg border border-[#eeeff1] bg-[#fbfbfb] px-4 py-3 text-[13px] text-[rgba(0,0,0,0.7)]">
+          Top-up cancelled — no charge was made.
+        </div>
+      ) : null}
+
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-[20px] font-semibold tracking-[-0.3px] text-[#242529]">
@@ -56,6 +73,8 @@ export function BillingPageContent({
               walletBalance={data.plan.walletBalance}
             />
           </div>
+
+          {isPrepaid ? <AddFundsCard walletBalance={data.plan.walletBalance} /> : null}
 
           <DailyUsageChart
             points={data.dailyUsage}
