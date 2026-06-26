@@ -2,6 +2,7 @@ import {
   OUTCOME_CATEGORY_VALUES,
   type OutcomeCategory,
 } from "@/lib/call-outcomes";
+import { expandEndedReason } from "@/lib/call-ended-reasons";
 import type { CallLogFilters } from "@/lib/calls";
 
 export type RpcFilterArgs = {
@@ -17,6 +18,7 @@ export type RpcFilterArgs = {
   p_to?: string;
   p_reviewed_state?: string;
   p_hours?: string;
+  p_ended_reason?: string[];
   p_sort_by: string;
   p_sort_order: string;
 };
@@ -81,6 +83,7 @@ export function buildRpcFilterArgs(
 ): RpcFilterArgs {
   const { outcomes, outcomeNull } = expandOutcome(filters.outcome);
   const sentiments = buildSentiments(filters.sentiment);
+  const endedReasons = expandEndedReason(filters.endedReason);
 
   return {
     p_search: filters.search?.trim() ? filters.search.trim() : undefined,
@@ -106,6 +109,7 @@ export function buildRpcFilterArgs(
       filters.hours === "business" || filters.hours === "after"
         ? filters.hours
         : undefined,
+    p_ended_reason: endedReasons ?? undefined,
     p_sort_by: rpcSortBy,
     p_sort_order: rpcSortOrder,
   };

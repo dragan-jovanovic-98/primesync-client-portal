@@ -11,6 +11,7 @@ import {
   type CallLogFilters,
 } from "@/lib/calls";
 import { getOutcomeLabel } from "@/lib/call-outcomes";
+import { getEndedReasonLabel } from "@/lib/call-ended-reasons";
 
 const CHUNK_SIZE = 1000;
 
@@ -25,6 +26,7 @@ const HEADERS = [
   "outcome",
   "sentiment",
   "reviewed",
+  "ended_reason",
   "agent_name",
   "location_name",
   "summary",
@@ -62,6 +64,7 @@ type CallRow = {
   call_outcome: string | null;
   user_sentiment: string | null;
   reviewed: boolean;
+  ended_reason: string | null;
   agent_name: string | null;
   location_id: string | null;
   summary: string | null;
@@ -89,6 +92,7 @@ export async function GET(request: NextRequest) {
     from: searchParams.get("from") ?? undefined,
     to: searchParams.get("to") ?? undefined,
     reviewedState: searchParams.get("reviewed") ?? undefined,
+    endedReason: searchParams.get("ended_reason") ?? undefined,
   };
 
   const sortBy = filters.sortBy || "date";
@@ -144,7 +148,7 @@ export async function GET(request: NextRequest) {
             console.error("[portal] export calls RPC error:", error);
             controller.enqueue(
               encoder.encode(
-                csvRow(["ERROR", error.message, "", "", "", "", "", "", "", "", "", "", "", ""]),
+                csvRow(["ERROR", error.message, "", "", "", "", "", "", "", "", "", "", "", "", ""]),
               ),
             );
             controller.close();
@@ -188,6 +192,7 @@ export async function GET(request: NextRequest) {
                   getOutcomeLabel(row.call_outcome),
                   row.user_sentiment ?? "",
                   row.reviewed ? "yes" : "no",
+                  getEndedReasonLabel(row.ended_reason),
                   row.agent_name ?? "",
                   locationName,
                   row.summary ?? "",

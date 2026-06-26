@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 interface CallFiltersProps {
   agents: Array<{ value: string; label: string }>;
   outcomes: Array<{ value: string; label: string }>;
+  endedReasons: Array<{ value: string; label: string }>;
 }
 
 const btnBase =
@@ -24,6 +25,7 @@ const FILTER_KEYS = [
   "sentiment",
   "agent",
   "outcome",
+  "ended_reason",
   "hours",
   "reviewed",
 ] as const;
@@ -31,6 +33,7 @@ const FILTER_KEYS = [
 function buildFilterDefs(
   agents: Array<{ value: string; label: string }>,
   outcomes: Array<{ value: string; label: string }>,
+  endedReasons: Array<{ value: string; label: string }>,
 ) {
   return [
     {
@@ -52,6 +55,7 @@ function buildFilterDefs(
     },
     { key: "agent", label: "Agent", options: agents },
     { key: "outcome", label: "Outcome", options: outcomes },
+    { key: "ended_reason", label: "Ended Reason", options: endedReasons },
     {
       key: "hours",
       label: "Hours",
@@ -89,20 +93,20 @@ function useClickOutside(
   }, [active, handler, ref]);
 }
 
-export function CallFilters({ agents, outcomes }: CallFiltersProps) {
+export function CallFilters({ agents, outcomes, endedReasons }: CallFiltersProps) {
   return (
     <>
       <div className="hidden md:contents">
-        <DesktopCallFilters agents={agents} outcomes={outcomes} />
+        <DesktopCallFilters agents={agents} outcomes={outcomes} endedReasons={endedReasons} />
       </div>
       <div className="md:hidden">
-        <MobileCallFilters agents={agents} outcomes={outcomes} />
+        <MobileCallFilters agents={agents} outcomes={outcomes} endedReasons={endedReasons} />
       </div>
     </>
   );
 }
 
-function DesktopCallFilters({ agents, outcomes }: CallFiltersProps) {
+function DesktopCallFilters({ agents, outcomes, endedReasons }: CallFiltersProps) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -126,7 +130,7 @@ function DesktopCallFilters({ agents, outcomes }: CallFiltersProps) {
     filterOpen,
   );
 
-  const filterDefs = buildFilterDefs(agents, outcomes);
+  const filterDefs = buildFilterDefs(agents, outcomes, endedReasons);
 
   function navigate(params: URLSearchParams) {
     params.set("page", "1");
@@ -482,6 +486,7 @@ type StagedFilters = {
   sentiment: string[];
   agent: string[];
   outcome: string[];
+  ended_reason: string[];
   hours: string[];
   reviewed: string[];
   duration_min: string;
@@ -496,6 +501,7 @@ function readStagedFromParams(searchParams: URLSearchParams): StagedFilters {
     sentiment: (searchParams.get("sentiment") ?? "").split(",").filter(Boolean),
     agent: (searchParams.get("agent") ?? "").split(",").filter(Boolean),
     outcome: (searchParams.get("outcome") ?? "").split(",").filter(Boolean),
+    ended_reason: (searchParams.get("ended_reason") ?? "").split(",").filter(Boolean),
     hours: (searchParams.get("hours") ?? "").split(",").filter(Boolean),
     reviewed: (searchParams.get("reviewed") ?? "").split(",").filter(Boolean),
     duration_min: searchParams.get("duration_min") ?? "",
@@ -503,7 +509,7 @@ function readStagedFromParams(searchParams: URLSearchParams): StagedFilters {
   };
 }
 
-function MobileCallFilters({ agents, outcomes }: CallFiltersProps) {
+function MobileCallFilters({ agents, outcomes, endedReasons }: CallFiltersProps) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -519,8 +525,8 @@ function MobileCallFilters({ agents, outcomes }: CallFiltersProps) {
   }
 
   const filterDefs = useMemo(
-    () => buildFilterDefs(agents, outcomes),
-    [agents, outcomes],
+    () => buildFilterDefs(agents, outcomes, endedReasons),
+    [agents, outcomes, endedReasons],
   );
 
   const activeCount = useMemo(() => {
@@ -555,6 +561,7 @@ function MobileCallFilters({ agents, outcomes }: CallFiltersProps) {
       sentiment: [],
       agent: [],
       outcome: [],
+      ended_reason: [],
       hours: [],
       reviewed: [],
       duration_min: "",

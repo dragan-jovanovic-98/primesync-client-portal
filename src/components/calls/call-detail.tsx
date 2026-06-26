@@ -15,6 +15,7 @@ import {
   SENTIMENT_STYLES,
   type CallLogDetail,
 } from "@/lib/calls";
+import { getEndedReasonLabel } from "@/lib/call-ended-reasons";
 import { cn } from "@/lib/utils";
 
 function outcomeBadgeStyles(tier: "high" | "medium" | "low") {
@@ -152,7 +153,7 @@ export function CallDetail({ call, canWriteReview }: CallDetailProps) {
               <div className="flex items-center justify-between gap-4">
                 <span className="text-[rgba(0,0,0,0.45)]">Ended Reason</span>
                 <span className="font-medium text-right text-[#242529]">
-                  {call.ended_reason || "—"}
+                  {getEndedReasonLabel(call.ended_reason)}
                 </span>
               </div>
             </div>

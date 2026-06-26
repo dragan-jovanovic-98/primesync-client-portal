@@ -25,6 +25,7 @@ export type CallLog = {
   summary: string | null;
   agent_name: string | null;
   reviewed: boolean;
+  ended_reason: string | null;
 };
 
 // Detail row used by /calls/[id] — full all_client_calls row returned by the
@@ -53,6 +54,7 @@ export type CallLogFilters = {
   durationMax?: string;
   hours?: string;
   reviewedState?: string;
+  endedReason?: string;
 };
 
 export type CallLogResult = {

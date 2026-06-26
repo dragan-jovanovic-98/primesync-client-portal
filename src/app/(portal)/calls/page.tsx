@@ -2,6 +2,7 @@ import { requirePortalSession } from "@/lib/portal/session";
 import { getCalls } from "@/app/(portal)/calls/actions";
 import { CallsPageContent } from "@/app/(portal)/calls/calls-page-content";
 import { getOutcomeFilterOptions } from "@/lib/calls";
+import { filterEndedReasonOptions } from "@/lib/call-ended-reasons";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export default async function CallsPage({
@@ -16,7 +17,7 @@ export default async function CallsPage({
   const str = (value: string | string[] | undefined) =>
     typeof value === "string" ? value : undefined;
 
-  const [callsResult, assistantsResult] = await Promise.all([
+  const [callsResult, assistantsResult, endedReasonsResult] = await Promise.all([
     getCalls({
       companyId: session.membership.company_id,
       page: Number(str(params.page)) || 1,
@@ -33,12 +34,14 @@ export default async function CallsPage({
       from: str(params.from),
       to: str(params.to),
       reviewedState: str(params.reviewed),
+      endedReason: str(params.ended_reason),
     }),
     supabase
       .from("assistants")
       .select("assistant_id, agent_name")
       .eq("company_id", session.membership.company_id)
       .order("agent_name"),
+    supabase.rpc("get_portal_ended_reasons"),
   ]);
 
   const agents = (assistantsResult.data ?? [])
@@ -48,6 +51,11 @@ export default async function CallsPage({
       label: agent.agent_name as string,
     }));
 
+  const presentEndedReasons = (endedReasonsResult.data ?? [])
+    .map((row) => row.ended_reason)
+    .filter((value): value is string => Boolean(value));
+  const endedReasons = filterEndedReasonOptions(presentEndedReasons);
+
   return (
     <CallsPageContent
       calls={callsResult.calls}
@@ -56,6 +64,7 @@ export default async function CallsPage({
       perPage={callsResult.perPage}
       agents={agents}
       outcomes={getOutcomeFilterOptions()}
+      endedReasons={endedReasons}
     />
   );
 }

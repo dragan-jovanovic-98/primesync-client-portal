@@ -2939,6 +2939,7 @@ export type Database = {
           p_direction?: string
           p_duration_max?: number
           p_duration_min?: number
+          p_ended_reason?: string[]
           p_from?: string
           p_hours?: string
           p_limit?: number
@@ -2960,6 +2961,7 @@ export type Database = {
           call_duration_s: number
           call_id: string
           call_outcome: string
+          ended_reason: string
           is_business_hours: boolean
           location_id: string
           phone_number: number
@@ -2978,6 +2980,12 @@ export type Database = {
           p_to: string
         }
         Returns: Json
+      }
+      get_portal_ended_reasons: {
+        Args: never
+        Returns: {
+          ended_reason: string
+        }[]
       }
       get_portal_notifications: {
         Args: { p_limit?: number; p_offset?: number }
