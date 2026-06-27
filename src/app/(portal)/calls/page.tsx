@@ -17,32 +17,37 @@ export default async function CallsPage({
   const str = (value: string | string[] | undefined) =>
     typeof value === "string" ? value : undefined;
 
-  const [callsResult, assistantsResult, endedReasonsResult] = await Promise.all([
-    getCalls({
-      companyId: session.membership.company_id,
-      page: Number(str(params.page)) || 1,
-      search: str(params.search),
-      direction: str(params.direction),
-      sentiment: str(params.sentiment),
-      agent: str(params.agent),
-      outcome: str(params.outcome),
-      sortBy: str(params.sort),
-      sortOrder: str(params.order),
-      durationMin: str(params.duration_min),
-      durationMax: str(params.duration_max),
-      hours: str(params.hours),
-      from: str(params.from),
-      to: str(params.to),
-      reviewedState: str(params.reviewed),
-      endedReason: str(params.ended_reason),
-    }),
-    supabase
-      .from("assistants")
-      .select("assistant_id, agent_name")
-      .eq("company_id", session.membership.company_id)
-      .order("agent_name"),
-    supabase.rpc("get_portal_ended_reasons"),
-  ]);
+  const [callsResult, assistantsResult, endedReasonsResult, directionsResult] =
+    await Promise.all([
+      getCalls({
+        companyId: session.membership.company_id,
+        page: Number(str(params.page)) || 1,
+        search: str(params.search),
+        direction: str(params.direction),
+        sentiment: str(params.sentiment),
+        agent: str(params.agent),
+        outcome: str(params.outcome),
+        sortBy: str(params.sort),
+        sortOrder: str(params.order),
+        durationMin: str(params.duration_min),
+        durationMax: str(params.duration_max),
+        from: str(params.from),
+        to: str(params.to),
+        reviewedState: str(params.reviewed),
+        endedReason: str(params.ended_reason),
+        timeFrom: str(params.time_from),
+        timeTo: str(params.time_to),
+      }),
+      supabase
+        .from("assistants")
+        .select("assistant_id, agent_name")
+        .eq("company_id", session.membership.company_id)
+        .order("agent_name"),
+      supabase.rpc("get_portal_ended_reasons"),
+      // Not in the generated DB types yet; read untyped (mirrors the
+      // get_portal_calls cast convention). Drives Direction-filter auto-hide.
+      supabase.rpc("get_portal_call_directions" as never),
+    ]);
 
   const agents = (assistantsResult.data ?? [])
     .filter((agent) => agent.assistant_id && agent.agent_name)
@@ -56,6 +61,14 @@ export default async function CallsPage({
     .filter((value): value is string => Boolean(value));
   const endedReasons = filterEndedReasonOptions(presentEndedReasons);
 
+  const presentDirections = (
+    ((directionsResult as { data: unknown }).data ?? []) as Array<{
+      call_direction: string | null;
+    }>
+  )
+    .map((row) => row.call_direction)
+    .filter((value): value is string => Boolean(value));
+
   return (
     <CallsPageContent
       calls={callsResult.calls}
@@ -65,6 +78,7 @@ export default async function CallsPage({
       agents={agents}
       outcomes={getOutcomeFilterOptions()}
       endedReasons={endedReasons}
+      directions={presentDirections}
     />
   );
 }

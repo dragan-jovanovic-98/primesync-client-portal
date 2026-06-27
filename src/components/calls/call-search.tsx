@@ -19,7 +19,11 @@ export function CallSearch() {
   // the user is typing the input is focused, so we skip the sync — otherwise
   // the debounced URL update would reset state and steal focus mid-keystroke.
   useEffect(() => {
+    // Reading DOM focus to decide whether to sync is exactly the "synchronize
+    // with an external system" case effects are for; the setState is guarded by
+    // focus so it cannot cascade while the user is typing.
     if (document.activeElement !== inputRef.current) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setValue(urlSearch);
     }
   }, [urlSearch]);

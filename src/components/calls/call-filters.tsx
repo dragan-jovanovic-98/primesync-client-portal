@@ -13,6 +13,9 @@ interface CallFiltersProps {
   agents: Array<{ value: string; label: string }>;
   outcomes: Array<{ value: string; label: string }>;
   endedReasons: Array<{ value: string; label: string }>;
+  /** Distinct call directions present for this company. The Direction filter is
+   * hidden when there are 0–1 (e.g. inbound-only clients) — pure noise. */
+  directions: string[];
 }
 
 const btnBase =
@@ -20,50 +23,61 @@ const btnBase =
 const chipBase =
   "flex h-9 items-center gap-2 rounded-lg bg-[#f5f7fa] px-2.5 text-[14px]";
 
+// Multi-select filter keys, in the order their chips render. Ordered to match
+// the filter menu. "duration" and "time_of_day" are custom-range panels handled
+// separately (their own chips), so they are not listed here.
 const FILTER_KEYS = [
-  "direction",
-  "sentiment",
-  "agent",
   "outcome",
+  "agent",
+  "sentiment",
   "ended_reason",
-  "hours",
+  "direction",
   "reviewed",
 ] as const;
+
+/** Format an "HH:MM" 24h string as a 12h clock label, e.g. "13:00" → "1:00 PM". */
+function formatClock(hhmm: string): string {
+  const match = /^(\d{1,2}):(\d{2})$/.exec(hhmm);
+  if (!match) return hhmm;
+  const hours = Number(match[1]);
+  const minutes = match[2];
+  const period = hours < 12 ? "AM" : "PM";
+  const display = hours % 12 === 0 ? 12 : hours % 12;
+  return `${display}:${minutes} ${period}`;
+}
 
 function buildFilterDefs(
   agents: Array<{ value: string; label: string }>,
   outcomes: Array<{ value: string; label: string }>,
   endedReasons: Array<{ value: string; label: string }>,
+  directions: string[],
 ) {
+  const directionDef = {
+    key: "direction",
+    label: "Direction",
+    options: [
+      { value: "inbound", label: "Inbound" },
+      { value: "outbound", label: "Outbound" },
+    ].filter((option) => directions.includes(option.value)),
+  };
+
   return [
-    {
-      key: "direction",
-      label: "Direction",
-      options: [
-        { value: "inbound", label: "Inbound" },
-        { value: "outbound", label: "Outbound" },
-      ],
-    },
+    { key: "outcome", label: "Outcome", options: outcomes },
+    { key: "agent", label: "Agent", options: agents },
+    // Custom clock-time-of-day range panel (empty options, like duration).
+    { key: "time_of_day", label: "Time of Day", options: [] as Array<{ value: string; label: string }> },
     {
       key: "sentiment",
-      label: "Sentiment",
+      label: "Caller Sentiment",
       options: [
         { value: "positive", label: "Positive" },
         { value: "neutral", label: "Neutral" },
         { value: "negative", label: "Negative" },
       ],
     },
-    { key: "agent", label: "Agent", options: agents },
-    { key: "outcome", label: "Outcome", options: outcomes },
-    { key: "ended_reason", label: "Ended Reason", options: endedReasons },
-    {
-      key: "hours",
-      label: "Hours",
-      options: [
-        { value: "business", label: "Business Hours" },
-        { value: "after", label: "After Hours" },
-      ],
-    },
+    { key: "ended_reason", label: "How It Ended", options: endedReasons },
+    // Direction is omitted entirely for clients with 0–1 distinct directions.
+    ...(directions.length > 1 ? [directionDef] : []),
     {
       key: "reviewed",
       label: "Reviewed",
@@ -93,20 +107,20 @@ function useClickOutside(
   }, [active, handler, ref]);
 }
 
-export function CallFilters({ agents, outcomes, endedReasons }: CallFiltersProps) {
+export function CallFilters({ agents, outcomes, endedReasons, directions }: CallFiltersProps) {
   return (
     <>
       <div className="hidden md:contents">
-        <DesktopCallFilters agents={agents} outcomes={outcomes} endedReasons={endedReasons} />
+        <DesktopCallFilters agents={agents} outcomes={outcomes} endedReasons={endedReasons} directions={directions} />
       </div>
       <div className="md:hidden">
-        <MobileCallFilters agents={agents} outcomes={outcomes} endedReasons={endedReasons} />
+        <MobileCallFilters agents={agents} outcomes={outcomes} endedReasons={endedReasons} directions={directions} />
       </div>
     </>
   );
 }
 
-function DesktopCallFilters({ agents, outcomes, endedReasons }: CallFiltersProps) {
+function DesktopCallFilters({ agents, outcomes, endedReasons, directions }: CallFiltersProps) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -117,6 +131,8 @@ function DesktopCallFilters({ agents, outcomes, endedReasons }: CallFiltersProps
   const [pendingSelections, setPendingSelections] = useState<string[]>([]);
   const [durationMin, setDurationMin] = useState("");
   const [durationMax, setDurationMax] = useState("");
+  const [timeFrom, setTimeFrom] = useState("");
+  const [timeTo, setTimeTo] = useState("");
   const dateRef = useRef<HTMLDivElement>(null);
   const filterRef = useRef<HTMLDivElement>(null);
 
@@ -130,7 +146,7 @@ function DesktopCallFilters({ agents, outcomes, endedReasons }: CallFiltersProps
     filterOpen,
   );
 
-  const filterDefs = buildFilterDefs(agents, outcomes, endedReasons);
+  const filterDefs = buildFilterDefs(agents, outcomes, endedReasons, directions);
 
   function navigate(params: URLSearchParams) {
     params.set("page", "1");
@@ -161,6 +177,11 @@ function DesktopCallFilters({ agents, outcomes, endedReasons }: CallFiltersProps
       setDurationMax(searchParams.get("duration_max") ?? "");
       return;
     }
+    if (key === "time_of_day") {
+      setTimeFrom(searchParams.get("time_from") ?? "");
+      setTimeTo(searchParams.get("time_to") ?? "");
+      return;
+    }
     const current = searchParams.get(key);
     setPendingSelections(current ? current.split(",") : []);
   }
@@ -178,6 +199,15 @@ function DesktopCallFilters({ agents, outcomes, endedReasons }: CallFiltersProps
       else params.delete("duration_min");
       if (durationMax) params.set("duration_max", durationMax);
       else params.delete("duration_max");
+    } else if (filterPage === "time_of_day") {
+      // Apply only with two distinct endpoints; otherwise clear (matches RPC no-op).
+      if (timeFrom && timeTo && timeFrom !== timeTo) {
+        params.set("time_from", timeFrom);
+        params.set("time_to", timeTo);
+      } else {
+        params.delete("time_from");
+        params.delete("time_to");
+      }
     } else if (filterPage) {
       if (pendingSelections.length > 0) {
         params.set(filterPage, pendingSelections.join(","));
@@ -218,8 +248,16 @@ function DesktopCallFilters({ agents, outcomes, endedReasons }: CallFiltersProps
     return `≤ ${max}s`;
   }
 
+  function getTimeOfDayDisplay() {
+    const tFrom = searchParams.get("time_from");
+    const tTo = searchParams.get("time_to");
+    if (!tFrom || !tTo) return null;
+    return `${formatClock(tFrom)} – ${formatClock(tTo)}`;
+  }
+
   const activeFilterKeys = FILTER_KEYS.filter((key) => searchParams.get(key));
   const durationDisplay = getDurationDisplay();
+  const timeOfDayDisplay = getTimeOfDayDisplay();
   const searchFrom = searchParams.get("from");
   const searchTo = searchParams.get("to");
   const dateLabel =
@@ -312,6 +350,24 @@ function DesktopCallFilters({ agents, outcomes, endedReasons }: CallFiltersProps
             onClick={() => {
               removeFilter("duration_min");
               removeFilter("duration_max");
+            }}
+            className="ml-0.5 text-[rgba(0,0,0,0.3)] transition-colors hover:text-[#242529]"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      ) : null}
+
+      {timeOfDayDisplay ? (
+        <div className={chipBase}>
+          <span className="text-[#242529]">Time of Day</span>
+          <span className="text-[#335cff]">{timeOfDayDisplay}</span>
+          <button
+            onClick={() => {
+              const params = new URLSearchParams(searchParams.toString());
+              params.delete("time_from");
+              params.delete("time_to");
+              navigate(params);
             }}
             className="ml-0.5 text-[rgba(0,0,0,0.3)] transition-colors hover:text-[#242529]"
           >
@@ -415,6 +471,62 @@ function DesktopCallFilters({ agents, outcomes, endedReasons }: CallFiltersProps
                   </button>
                 </div>
               </div>
+            ) : filterPage === "time_of_day" ? (
+              <div>
+                <div className="flex items-center gap-2 border-b border-[#e5e5e5] px-3 py-2.5">
+                  <button
+                    onClick={() => setFilterPage(null)}
+                    className="text-[rgba(0,0,0,0.4)] transition-colors hover:text-[#242529]"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                  <span className="text-[14px] font-medium text-[#242529]">Time of Day</span>
+                </div>
+                <div className="space-y-3 px-3 py-3">
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1">
+                      <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-[rgba(0,0,0,0.4)]">
+                        From
+                      </label>
+                      <input
+                        type="time"
+                        value={timeFrom}
+                        onChange={(event) => setTimeFrom(event.target.value)}
+                        className="h-8 w-full rounded-md border border-[#e5e5e5] px-2 text-[14px] text-[#242529] focus:border-[#335cff] focus:outline-none"
+                      />
+                    </div>
+                    <span className="mt-5 text-[rgba(0,0,0,0.25)]">–</span>
+                    <div className="flex-1">
+                      <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-[rgba(0,0,0,0.4)]">
+                        To
+                      </label>
+                      <input
+                        type="time"
+                        value={timeTo}
+                        onChange={(event) => setTimeTo(event.target.value)}
+                        className="h-8 w-full rounded-md border border-[#e5e5e5] px-2 text-[14px] text-[#242529] focus:border-[#335cff] focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-[11px] leading-snug text-[rgba(0,0,0,0.4)]">
+                    Local time. Overnight ranges (e.g. 10:00 PM – 6:00 AM) are supported.
+                  </p>
+                </div>
+                <div className="flex items-center justify-end gap-2 border-t border-[#e5e5e5] px-3 py-2">
+                  <button
+                    onClick={() => setFilterPage(null)}
+                    className="px-3 py-1.5 text-[13px] font-medium text-[#525866] transition-colors hover:text-[#242529]"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={applyFilter}
+                    className="rounded-md bg-[#242529] px-3 py-1.5 text-[13px] font-medium text-white transition-colors hover:bg-[#3a3b3f]"
+                  >
+                    Apply
+                  </button>
+                </div>
+              </div>
             ) : (
               <div>
                 <div className="flex items-center gap-2 border-b border-[#e5e5e5] px-3 py-2.5">
@@ -487,10 +599,11 @@ type StagedFilters = {
   agent: string[];
   outcome: string[];
   ended_reason: string[];
-  hours: string[];
   reviewed: string[];
   duration_min: string;
   duration_max: string;
+  time_from: string;
+  time_to: string;
 };
 
 function readStagedFromParams(searchParams: URLSearchParams): StagedFilters {
@@ -502,14 +615,15 @@ function readStagedFromParams(searchParams: URLSearchParams): StagedFilters {
     agent: (searchParams.get("agent") ?? "").split(",").filter(Boolean),
     outcome: (searchParams.get("outcome") ?? "").split(",").filter(Boolean),
     ended_reason: (searchParams.get("ended_reason") ?? "").split(",").filter(Boolean),
-    hours: (searchParams.get("hours") ?? "").split(",").filter(Boolean),
     reviewed: (searchParams.get("reviewed") ?? "").split(",").filter(Boolean),
     duration_min: searchParams.get("duration_min") ?? "",
     duration_max: searchParams.get("duration_max") ?? "",
+    time_from: searchParams.get("time_from") ?? "",
+    time_to: searchParams.get("time_to") ?? "",
   };
 }
 
-function MobileCallFilters({ agents, outcomes, endedReasons }: CallFiltersProps) {
+function MobileCallFilters({ agents, outcomes, endedReasons, directions }: CallFiltersProps) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -525,8 +639,8 @@ function MobileCallFilters({ agents, outcomes, endedReasons }: CallFiltersProps)
   }
 
   const filterDefs = useMemo(
-    () => buildFilterDefs(agents, outcomes, endedReasons),
-    [agents, outcomes, endedReasons],
+    () => buildFilterDefs(agents, outcomes, endedReasons, directions),
+    [agents, outcomes, endedReasons, directions],
   );
 
   const activeCount = useMemo(() => {
@@ -536,6 +650,7 @@ function MobileCallFilters({ agents, outcomes, endedReasons }: CallFiltersProps)
       if (searchParams.get(key)) count += 1;
     }
     if (searchParams.get("duration_min") || searchParams.get("duration_max")) count += 1;
+    if (searchParams.get("time_from") || searchParams.get("time_to")) count += 1;
     return count;
   }, [searchParams]);
 
@@ -549,7 +664,10 @@ function MobileCallFilters({ agents, outcomes, endedReasons }: CallFiltersProps)
     });
   }
 
-  function setRange(field: "from" | "to" | "duration_min" | "duration_max", value: string) {
+  function setRange(
+    field: "from" | "to" | "duration_min" | "duration_max" | "time_from" | "time_to",
+    value: string,
+  ) {
     setStaged((prev) => ({ ...prev, [field]: value }));
   }
 
@@ -562,10 +680,11 @@ function MobileCallFilters({ agents, outcomes, endedReasons }: CallFiltersProps)
       agent: [],
       outcome: [],
       ended_reason: [],
-      hours: [],
       reviewed: [],
       duration_min: "",
       duration_max: "",
+      time_from: "",
+      time_to: "",
     });
   }
 
@@ -587,6 +706,15 @@ function MobileCallFilters({ agents, outcomes, endedReasons }: CallFiltersProps)
     else params.delete("duration_min");
     if (staged.duration_max) params.set("duration_max", staged.duration_max);
     else params.delete("duration_max");
+
+    // Time-of-day range: apply only with two distinct endpoints, else clear.
+    if (staged.time_from && staged.time_to && staged.time_from !== staged.time_to) {
+      params.set("time_from", staged.time_from);
+      params.set("time_to", staged.time_to);
+    } else {
+      params.delete("time_from");
+      params.delete("time_to");
+    }
 
     params.set("page", "1");
     router.replace(params.toString() ? `${pathname}?${params.toString()}` : pathname);
@@ -633,9 +761,9 @@ function MobileCallFilters({ agents, outcomes, endedReasons }: CallFiltersProps)
             </div>
           </section>
 
-          {/* Multi-select sections */}
+          {/* Multi-select sections (duration + time_of_day are custom ranges) */}
           {filterDefs
-            .filter((def) => def.key !== "duration")
+            .filter((def) => def.key !== "duration" && def.key !== "time_of_day")
             .map((def) => (
               <section key={def.key}>
                 <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-[rgba(0,0,0,0.45)]">
@@ -668,6 +796,36 @@ function MobileCallFilters({ agents, outcomes, endedReasons }: CallFiltersProps)
                 </div>
               </section>
             ))}
+
+          {/* Time of Day (local clock range) */}
+          <section>
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-[rgba(0,0,0,0.45)]">
+              Time of Day
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="mb-1 block text-[12px] text-zinc-500">From</label>
+                <input
+                  type="time"
+                  value={staged.time_from}
+                  onChange={(e) => setRange("time_from", e.target.value)}
+                  className="h-9 w-full rounded-lg border border-[#e5e5e5] px-2.5 text-[14px] text-[#242529] focus:border-[#335cff] focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-[12px] text-zinc-500">To</label>
+                <input
+                  type="time"
+                  value={staged.time_to}
+                  onChange={(e) => setRange("time_to", e.target.value)}
+                  className="h-9 w-full rounded-lg border border-[#e5e5e5] px-2.5 text-[14px] text-[#242529] focus:border-[#335cff] focus:outline-none"
+                />
+              </div>
+            </div>
+            <p className="mt-1.5 text-[11px] leading-snug text-zinc-500">
+              Local time. Overnight ranges (e.g. 10:00 PM – 6:00 AM) are supported.
+            </p>
+          </section>
 
           {/* Duration */}
           <section>

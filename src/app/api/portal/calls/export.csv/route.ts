@@ -93,6 +93,8 @@ export async function GET(request: NextRequest) {
     to: searchParams.get("to") ?? undefined,
     reviewedState: searchParams.get("reviewed") ?? undefined,
     endedReason: searchParams.get("ended_reason") ?? undefined,
+    timeFrom: searchParams.get("time_from") ?? undefined,
+    timeTo: searchParams.get("time_to") ?? undefined,
   };
 
   const sortBy = filters.sortBy || "date";

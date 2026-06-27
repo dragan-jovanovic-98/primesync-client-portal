@@ -55,6 +55,10 @@ export type CallLogFilters = {
   hours?: string;
   reviewedState?: string;
   endedReason?: string;
+  /** Local clock-time-of-day range, "HH:MM" 24h. Both required for the filter
+   * to apply; equal/empty endpoints are treated as a no-op. */
+  timeFrom?: string;
+  timeTo?: string;
 };
 
 export type CallLogResult = {

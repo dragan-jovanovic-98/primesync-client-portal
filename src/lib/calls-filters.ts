@@ -19,9 +19,23 @@ export type RpcFilterArgs = {
   p_reviewed_state?: string;
   p_hours?: string;
   p_ended_reason?: string[];
+  p_time_from_min?: number;
+  p_time_to_min?: number;
   p_sort_by: string;
   p_sort_order: string;
 };
+
+/** Parse an "HH:MM" 24h string into minutes-of-day (0–1439). Returns undefined
+ * for empty/malformed/out-of-range input so a bad value never narrows results. */
+export function hhmmToMinutes(value: string | undefined): number | undefined {
+  if (!value) return undefined;
+  const match = /^(\d{1,2}):(\d{2})$/.exec(value.trim());
+  if (!match) return undefined;
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return undefined;
+  return hours * 60 + minutes;
+}
 
 function normalizeSentimentFilter(value: string) {
   const normalized = value.trim().toLowerCase();
@@ -85,6 +99,15 @@ export function buildRpcFilterArgs(
   const sentiments = buildSentiments(filters.sentiment);
   const endedReasons = expandEndedReason(filters.endedReason);
 
+  // Clock-time-of-day range. Apply only when both ends parse and differ — equal
+  // endpoints (or a missing/bad end) collapse to no-op, matching the RPC guard.
+  const timeFromMin = hhmmToMinutes(filters.timeFrom);
+  const timeToMin = hhmmToMinutes(filters.timeTo);
+  const timeRangeActive =
+    timeFromMin !== undefined &&
+    timeToMin !== undefined &&
+    timeFromMin !== timeToMin;
+
   return {
     p_search: filters.search?.trim() ? filters.search.trim() : undefined,
     p_direction:
@@ -110,6 +133,8 @@ export function buildRpcFilterArgs(
         ? filters.hours
         : undefined,
     p_ended_reason: endedReasons ?? undefined,
+    p_time_from_min: timeRangeActive ? timeFromMin : undefined,
+    p_time_to_min: timeRangeActive ? timeToMin : undefined,
     p_sort_by: rpcSortBy,
     p_sort_order: rpcSortOrder,
   };
