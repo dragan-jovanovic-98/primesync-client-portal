@@ -26,6 +26,9 @@ export type CallLog = {
   agent_name: string | null;
   reviewed: boolean;
   ended_reason: string | null;
+  /** Effective IANA timezone for this call (location → company → LA), resolved
+   * by get_portal_calls so the displayed time matches the time-of-day filter. */
+  local_tz: string | null;
 };
 
 // Detail row used by /calls/[id] — full all_client_calls row returned by the
@@ -111,6 +114,39 @@ export function getOutcomeFilterOptions(): Array<{
     label: getOutcomeLabel(OUTCOME_CATEGORY_VALUES[key][0] ?? key),
   }));
 }
+
+/**
+ * Format a call timestamp in the shop's resolved timezone (so the displayed
+ * time matches the timezone the time-of-day filter evaluates against). Uses
+ * Intl directly — no date-fns-tz dependency. Falls back to America/Los_Angeles
+ * if the zone is missing or invalid, mirroring the SQL resolution's fallback.
+ */
+export function formatInClientTz(
+  iso: string | null,
+  tz: string | null,
+  options: Intl.DateTimeFormatOptions,
+): string {
+  if (!iso) return "—";
+  const zone = tz && tz.trim() ? tz : "America/Los_Angeles";
+  try {
+    return new Intl.DateTimeFormat("en-US", { timeZone: zone, ...options }).format(
+      new Date(iso),
+    );
+  } catch {
+    return new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/Los_Angeles",
+      ...options,
+    }).format(new Date(iso));
+  }
+}
+
+// Shared Intl option presets so the table and detail view stay consistent.
+export const CALL_TIME_FORMATS = {
+  dateTime: { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", hour12: true },
+  date: { month: "short", day: "numeric" },
+  dateYear: { month: "short", day: "numeric", year: "numeric" },
+  time: { hour: "numeric", minute: "2-digit", hour12: true },
+} satisfies Record<string, Intl.DateTimeFormatOptions>;
 
 export function formatCallDuration(seconds: number | null) {
   if (!seconds || seconds <= 0) return "—";

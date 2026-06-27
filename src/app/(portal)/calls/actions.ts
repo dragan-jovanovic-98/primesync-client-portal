@@ -90,6 +90,22 @@ export async function getCallById(callId: string): Promise<CallLogDetail | null>
   return data ?? null;
 }
 
+export async function getCallTimezone(callId: string): Promise<string | null> {
+  noStore();
+  await requirePortalAction({ capability: "calls.read", page: "calls" });
+  const supabase = await createServerSupabaseClient();
+
+  // Resolves the shop's effective timezone for this call so the detail view
+  // renders times in the same zone the time-of-day filter uses. Not in the
+  // generated RPC types yet — read untyped.
+  const { data, error } = await supabase.rpc(
+    "get_portal_call_tz" as never,
+    { p_call_id: callId } as never,
+  );
+  if (error) return null;
+  return (data as string | null) ?? null;
+}
+
 export async function setCallReviewed(
   callId: string,
   reviewed: boolean,

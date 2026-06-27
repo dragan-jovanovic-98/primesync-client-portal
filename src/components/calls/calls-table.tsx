@@ -1,7 +1,6 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { format } from "date-fns";
 import {
   ArrowUpDown,
   ChevronLeft,
@@ -11,7 +10,9 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
+  CALL_TIME_FORMATS,
   formatCallDuration,
+  formatInClientTz,
   formatPhoneNumber,
   getOutcomeBadge,
   normalizeSentiment,
@@ -126,7 +127,7 @@ export function CallsTable({ calls, total, page, perPage }: CallsTableProps) {
               onClick={() => router.push(`/calls/${encodeURIComponent(call.call_id)}`)}
             >
               <div className={cn(cellBase, "text-[14px] font-medium text-[#242529]")}>
-                {call.call_date ? format(new Date(call.call_date), "MMM d, h:mm a") : "—"}
+                {formatInClientTz(call.call_date, call.local_tz, CALL_TIME_FORMATS.dateTime)}
               </div>
 
               <div className={cn(cellBase, "font-mono tabular-nums text-[14px] text-[#242529]")}>
@@ -196,9 +197,11 @@ export function CallsTable({ calls, total, page, perPage }: CallsTableProps) {
             const badge = getOutcomeBadge(call.call_outcome);
             const sentiment = normalizeSentiment(call.user_sentiment);
             const sentimentStyle = sentiment ? SENTIMENT_STYLES[sentiment] : null;
-            const dateLabel = call.call_date
-              ? format(new Date(call.call_date), "MMM d, h:mm a")
-              : "—";
+            const dateLabel = formatInClientTz(
+              call.call_date,
+              call.local_tz,
+              CALL_TIME_FORMATS.dateTime,
+            );
 
             return (
               <button

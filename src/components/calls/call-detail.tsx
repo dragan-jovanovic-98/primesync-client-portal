@@ -1,14 +1,16 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { format, formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
 import { Check } from "lucide-react";
 import {
   setCallNotes,
   setCallReviewed,
 } from "@/app/(portal)/calls/actions";
 import {
+  CALL_TIME_FORMATS,
   formatCallDuration,
+  formatInClientTz,
   formatPhoneNumber,
   getOutcomeBadge,
   normalizeSentiment,
@@ -26,11 +28,14 @@ function outcomeBadgeStyles(tier: "high" | "medium" | "low") {
 
 interface CallDetailProps {
   call: CallLogDetail;
+  /** Shop's resolved IANA timezone for this call, so times match the call log
+   * + time-of-day filter. Null falls back to America/Los_Angeles. */
+  timeZone: string | null;
   /** Whether the current portal user can mark this call reviewed and edit notes. */
   canWriteReview: boolean;
 }
 
-export function CallDetail({ call, canWriteReview }: CallDetailProps) {
+export function CallDetail({ call, timeZone, canWriteReview }: CallDetailProps) {
   const badge = getOutcomeBadge(call.call_outcome);
   const sentiment = normalizeSentiment(call.user_sentiment);
   const sentimentStyle = sentiment ? SENTIMENT_STYLES[sentiment] : null;
@@ -72,9 +77,9 @@ export function CallDetail({ call, canWriteReview }: CallDetailProps) {
 
       {/* Mobile-only metadata strip — replaces Call Info / Caller cards on phones */}
       <p className="-mt-2 text-[12.5px] text-zinc-500 md:hidden">
-        {call.call_date ? format(new Date(call.call_date), "MMM d") : "—"}
+        {formatInClientTz(call.call_date, timeZone, CALL_TIME_FORMATS.date)}
         {" · "}
-        {call.call_date ? format(new Date(call.call_date), "h:mm a") : "—"}
+        {formatInClientTz(call.call_date, timeZone, CALL_TIME_FORMATS.time)}
         {" · "}
         {formatCallDuration(call.call_duration_s)}
         {" · "}
@@ -131,13 +136,13 @@ export function CallDetail({ call, canWriteReview }: CallDetailProps) {
               <div className="flex items-center justify-between gap-4">
                 <span className="text-[rgba(0,0,0,0.45)]">Date</span>
                 <span className="font-medium text-[#242529]">
-                  {call.call_date ? format(new Date(call.call_date), "MMM d, yyyy") : "—"}
+                  {formatInClientTz(call.call_date, timeZone, CALL_TIME_FORMATS.dateYear)}
                 </span>
               </div>
               <div className="flex items-center justify-between gap-4">
                 <span className="text-[rgba(0,0,0,0.45)]">Time</span>
                 <span className="font-medium text-[#242529]">
-                  {call.call_date ? format(new Date(call.call_date), "h:mm a") : "—"}
+                  {formatInClientTz(call.call_date, timeZone, CALL_TIME_FORMATS.time)}
                 </span>
               </div>
               <div className="flex items-center justify-between gap-4">

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { requirePortalSession } from "@/lib/portal/session";
-import { getCallById } from "@/app/(portal)/calls/actions";
+import { getCallById, getCallTimezone } from "@/app/(portal)/calls/actions";
 import { CallDetail } from "@/components/calls/call-detail";
 import { hasCapability } from "@/lib/permissions";
 
@@ -13,8 +13,12 @@ export default async function CallDetailPage({
 }) {
   const session = await requirePortalSession({ page: "calls" });
   const { id } = await params;
+  const callId = decodeURIComponent(id);
 
-  const call = await getCallById(decodeURIComponent(id));
+  const [call, timeZone] = await Promise.all([
+    getCallById(callId),
+    getCallTimezone(callId),
+  ]);
 
   if (!call) {
     notFound();
@@ -31,6 +35,7 @@ export default async function CallDetailPage({
       </Link>
       <CallDetail
         call={call}
+        timeZone={timeZone}
         canWriteReview={hasCapability(session.role, "calls.write_review")}
       />
     </div>
