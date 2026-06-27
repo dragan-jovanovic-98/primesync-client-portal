@@ -5,32 +5,24 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Search, X } from "lucide-react";
 
 export function CallSearch() {
+  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const searchValue = searchParams.get("search") || "";
+  const urlSearch = searchParams.get("search") || "";
 
-  return (
-    <CallSearchInput
-      key={searchValue}
-      initialValue={searchValue}
-      pathname={pathname}
-      searchParamsString={searchParams.toString()}
-    />
-  );
-}
-
-function CallSearchInput({
-  initialValue,
-  pathname,
-  searchParamsString,
-}: {
-  initialValue: string;
-  pathname: string;
-  searchParamsString: string;
-}) {
-  const router = useRouter();
-  const [value, setValue] = useState(initialValue);
+  const [value, setValue] = useState(urlSearch);
+  const inputRef = useRef<HTMLInputElement>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  // Sync the input from the URL only when the change originated elsewhere
+  // (clear button, browser back/forward, a fresh navigation to /calls). While
+  // the user is typing the input is focused, so we skip the sync — otherwise
+  // the debounced URL update would reset state and steal focus mid-keystroke.
+  useEffect(() => {
+    if (document.activeElement !== inputRef.current) {
+      setValue(urlSearch);
+    }
+  }, [urlSearch]);
 
   useEffect(() => () => clearTimeout(timeoutRef.current), []);
 
@@ -38,7 +30,7 @@ function CallSearchInput({
     setValue(nextValue);
     clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => {
-      const params = new URLSearchParams(searchParamsString);
+      const params = new URLSearchParams(searchParams.toString());
       if (nextValue) {
         params.set("search", nextValue);
       } else {
@@ -51,12 +43,14 @@ function CallSearchInput({
 
   function clearSearch() {
     updateSearch("");
+    inputRef.current?.focus();
   }
 
   return (
     <div className="relative w-full max-w-sm">
       <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[rgba(0,0,0,0.35)]" />
       <input
+        ref={inputRef}
         type="text"
         placeholder="Search calls..."
         value={value}
