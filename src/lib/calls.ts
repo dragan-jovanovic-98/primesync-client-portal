@@ -62,6 +62,9 @@ export type CallLogFilters = {
    * to apply; equal/empty endpoints are treated as a no-op. */
   timeFrom?: string;
   timeTo?: string;
+  /** CSV of location UUIDs (mirrors the `locations` URL param). Empty/missing
+   * means all locations. Parsed + UUID-validated in buildRpcFilterArgs. */
+  locations?: string;
 };
 
 export type CallLogResult = {

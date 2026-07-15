@@ -12,9 +12,23 @@ export interface LocationFilterOption {
 
 interface LocationFilterProps {
   locations: LocationFilterOption[];
+  /** Popover anchor edge. Dashboard uses the default "right"; the Calls page
+   * sits at the left of its filter row and passes "left". */
+  align?: "left" | "right";
+  /** Overrides the button's class string (e.g. to match the Calls page's
+   * filter-button styling). Defaults to the dashboard button styling. */
+  buttonClassName?: string;
+  /** When true, Apply resets `page=1` (the Calls page is paginated; the
+   * Dashboard is not). */
+  resetPageOnApply?: boolean;
 }
 
-export function LocationFilter({ locations }: LocationFilterProps) {
+export function LocationFilter({
+  locations,
+  align = "right",
+  buttonClassName,
+  resetPageOnApply = false,
+}: LocationFilterProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const selectedFromUrl = useMemo(() => {
@@ -77,6 +91,9 @@ export function LocationFilter({ locations }: LocationFilterProps) {
     } else {
       next.set("locations", Array.from(draft).join(","));
     }
+    if (resetPageOnApply) {
+      next.set("page", "1");
+    }
     const query = next.toString();
     window.location.assign(query ? `${pathname}?${query}` : pathname);
     setOpen(false);
@@ -98,12 +115,15 @@ export function LocationFilter({ locations }: LocationFilterProps) {
           setDraft(selectedFromUrl);
           setOpen((value) => !value);
         }}
-        className={cn(
-          "flex h-8 items-center gap-1.5 rounded-lg border border-[#eeeff1] bg-[#fbfbfb] px-3 text-[13px] font-medium transition-colors",
-          selectedCount > 0 || open
-            ? "text-[#242529]"
-            : "text-[rgba(0,0,0,0.7)] hover:text-[#242529]",
-        )}
+        className={
+          buttonClassName ??
+          cn(
+            "flex h-8 items-center gap-1.5 rounded-lg border border-[#eeeff1] bg-[#fbfbfb] px-3 text-[13px] font-medium transition-colors",
+            selectedCount > 0 || open
+              ? "text-[#242529]"
+              : "text-[rgba(0,0,0,0.7)] hover:text-[#242529]",
+          )
+        }
       >
         <MapPin className="h-3.5 w-3.5" />
         <span>{displayLabel}</span>
@@ -111,7 +131,12 @@ export function LocationFilter({ locations }: LocationFilterProps) {
       </button>
 
       {open ? (
-        <div className="absolute right-0 top-full z-50 mt-1.5 w-[260px] overflow-hidden rounded-lg border border-[#eeeff1] bg-white shadow-[0_12px_32px_rgba(0,0,0,0.12)]">
+        <div
+          className={cn(
+            "absolute top-full z-50 mt-1.5 w-[260px] overflow-hidden rounded-lg border border-[#eeeff1] bg-white shadow-[0_12px_32px_rgba(0,0,0,0.12)]",
+            align === "left" ? "left-0" : "right-0",
+          )}
+        >
           <div className="flex items-center justify-between border-b border-[#eeeff1] px-3 py-2">
             <span className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
               Locations

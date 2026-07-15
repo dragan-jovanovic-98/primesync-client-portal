@@ -9,7 +9,8 @@ export type RpcFilterArgs = {
   p_search?: string;
   p_direction?: string;
   p_sentiments?: string[];
-  p_agent?: string;
+  p_agents?: string[];
+  p_location_ids?: string[];
   p_outcomes?: string[];
   p_outcome_null?: boolean;
   p_duration_min?: number;
@@ -58,6 +59,39 @@ export function buildSentiments(
   return values.length > 0 ? values : null;
 }
 
+/** Split the multi-select agent filter CSV into assistant_ids. The UI joins
+ * selections with "," into one URL param; the RPC takes text[] (p_agents), so
+ * a single-value pass would only ever match one agent. */
+export function buildAgents(filterValue: string | undefined): string[] | null {
+  if (!filterValue || filterValue === "all") return null;
+  const values = filterValue
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+  return values.length > 0 ? values : null;
+}
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Parse the location filter CSV into a deduped list of UUIDs. Non-UUID entries
+ * (a hand-edited URL) are dropped so a bad value can't 22P02 the RPC; if none
+ * survive the filter is treated as absent (all locations). */
+export function buildLocationIds(
+  filterValue: string | undefined,
+): string[] | null {
+  if (!filterValue) return null;
+  const values = Array.from(
+    new Set(
+      filterValue
+        .split(",")
+        .map((entry) => entry.trim())
+        .filter((entry) => UUID_RE.test(entry)),
+    ),
+  );
+  return values.length > 0 ? values : null;
+}
+
 export function expandOutcome(filterValue: string | undefined): {
   outcomes: string[] | null;
   outcomeNull: boolean;
@@ -97,6 +131,8 @@ export function buildRpcFilterArgs(
 ): RpcFilterArgs {
   const { outcomes, outcomeNull } = expandOutcome(filters.outcome);
   const sentiments = buildSentiments(filters.sentiment);
+  const agents = buildAgents(filters.agent);
+  const locationIds = buildLocationIds(filters.locations);
   const endedReasons = expandEndedReason(filters.endedReason);
 
   // Clock-time-of-day range. Apply only when both ends parse and differ — equal
@@ -115,8 +151,8 @@ export function buildRpcFilterArgs(
         ? filters.direction
         : undefined,
     p_sentiments: sentiments ?? undefined,
-    p_agent:
-      filters.agent && filters.agent !== "all" ? filters.agent : undefined,
+    p_agents: agents ?? undefined,
+    p_location_ids: locationIds ?? undefined,
     p_outcomes: outcomes ?? undefined,
     p_outcome_null: outcomeNull ? true : undefined,
     p_duration_min: filters.durationMin

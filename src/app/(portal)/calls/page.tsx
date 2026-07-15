@@ -17,8 +17,13 @@ export default async function CallsPage({
   const str = (value: string | string[] | undefined) =>
     typeof value === "string" ? value : undefined;
 
-  const [callsResult, assistantsResult, endedReasonsResult, directionsResult] =
-    await Promise.all([
+  const [
+    callsResult,
+    assistantsResult,
+    endedReasonsResult,
+    directionsResult,
+    locationsResult,
+  ] = await Promise.all([
       getCalls({
         companyId: session.membership.company_id,
         page: Number(str(params.page)) || 1,
@@ -37,6 +42,7 @@ export default async function CallsPage({
         endedReason: str(params.ended_reason),
         timeFrom: str(params.time_from),
         timeTo: str(params.time_to),
+        locations: str(params.locations),
       }),
       supabase
         .from("assistants")
@@ -47,6 +53,13 @@ export default async function CallsPage({
       // Not in the generated DB types yet; read untyped (mirrors the
       // get_portal_calls cast convention). Drives Direction-filter auto-hide.
       supabase.rpc("get_portal_call_directions" as never),
+      // Location options for the location filter. RLS scopes to the tenant; the
+      // explicit company_id eq mirrors the assistants query for symmetry.
+      supabase
+        .from("locations")
+        .select("id, location_name")
+        .eq("company_id", session.membership.company_id)
+        .order("location_name"),
     ]);
 
   const agents = (assistantsResult.data ?? [])
@@ -69,6 +82,10 @@ export default async function CallsPage({
     .map((row) => row.call_direction)
     .filter((value): value is string => Boolean(value));
 
+  const locations = (locationsResult.data ?? [])
+    .filter((row) => row.id && row.location_name)
+    .map((row) => ({ id: row.id, name: row.location_name as string }));
+
   return (
     <CallsPageContent
       calls={callsResult.calls}
@@ -79,6 +96,7 @@ export default async function CallsPage({
       outcomes={getOutcomeFilterOptions()}
       endedReasons={endedReasons}
       directions={presentDirections}
+      locations={locations}
     />
   );
 }

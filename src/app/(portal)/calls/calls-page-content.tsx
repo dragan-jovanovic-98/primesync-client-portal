@@ -15,6 +15,7 @@ interface CallsPageContentProps {
   outcomes: Array<{ value: string; label: string }>;
   endedReasons: Array<{ value: string; label: string }>;
   directions: string[];
+  locations: Array<{ id: string; name: string }>;
 }
 
 export function CallsPageContent({
@@ -26,6 +27,7 @@ export function CallsPageContent({
   outcomes,
   endedReasons,
   directions,
+  locations,
 }: CallsPageContentProps) {
   return (
     <div className="space-y-4">
@@ -33,13 +35,13 @@ export function CallsPageContent({
       <div className="space-y-3 md:hidden">
         <CallSearch />
         <div>
-          <CallFilters agents={agents} outcomes={outcomes} endedReasons={endedReasons} directions={directions} />
+          <CallFilters agents={agents} outcomes={outcomes} endedReasons={endedReasons} directions={directions} locations={locations} />
         </div>
       </div>
 
       {/* Desktop: existing inline single row */}
       <div className="hidden md:flex md:items-center md:justify-between md:gap-3">
-        <CallFilters agents={agents} outcomes={outcomes} endedReasons={endedReasons} directions={directions} />
+        <CallFilters agents={agents} outcomes={outcomes} endedReasons={endedReasons} directions={directions} locations={locations} />
         <div className="flex items-center gap-2">
           <CallSearch />
           <ExportCallsButton />

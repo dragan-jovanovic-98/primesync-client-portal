@@ -7,6 +7,7 @@ import { format } from "date-fns";
 import type { DateRange } from "react-day-picker";
 import { Calendar } from "@/components/ui/calendar";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
+import { LocationFilter } from "@/components/dashboard/location-filter";
 import { cn } from "@/lib/utils";
 
 interface CallFiltersProps {
@@ -16,6 +17,9 @@ interface CallFiltersProps {
   /** Distinct call directions present for this company. The Direction filter is
    * hidden when there are 0–1 (e.g. inbound-only clients) — pure noise. */
   directions: string[];
+  /** Physical locations for this company. The Location filter (a standalone
+   * button, like Date Range) is hidden for single-location clients. */
+  locations: Array<{ id: string; name: string }>;
 }
 
 const btnBase =
@@ -107,20 +111,20 @@ function useClickOutside(
   }, [active, handler, ref]);
 }
 
-export function CallFilters({ agents, outcomes, endedReasons, directions }: CallFiltersProps) {
+export function CallFilters({ agents, outcomes, endedReasons, directions, locations }: CallFiltersProps) {
   return (
     <>
       <div className="hidden md:contents">
-        <DesktopCallFilters agents={agents} outcomes={outcomes} endedReasons={endedReasons} directions={directions} />
+        <DesktopCallFilters agents={agents} outcomes={outcomes} endedReasons={endedReasons} directions={directions} locations={locations} />
       </div>
       <div className="md:hidden">
-        <MobileCallFilters agents={agents} outcomes={outcomes} endedReasons={endedReasons} directions={directions} />
+        <MobileCallFilters agents={agents} outcomes={outcomes} endedReasons={endedReasons} directions={directions} locations={locations} />
       </div>
     </>
   );
 }
 
-function DesktopCallFilters({ agents, outcomes, endedReasons, directions }: CallFiltersProps) {
+function DesktopCallFilters({ agents, outcomes, endedReasons, directions, locations }: CallFiltersProps) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -272,6 +276,15 @@ function DesktopCallFilters({ agents, outcomes, endedReasons, directions }: Call
 
   return (
     <div className="flex flex-wrap items-center gap-2">
+      {locations.length > 1 ? (
+        <LocationFilter
+          locations={locations}
+          align="left"
+          resetPageOnApply
+          buttonClassName={btnBase}
+        />
+      ) : null}
+
       <div className="relative" ref={dateRef}>
         <button
           onClick={() => {
@@ -600,6 +613,7 @@ type StagedFilters = {
   outcome: string[];
   ended_reason: string[];
   reviewed: string[];
+  locations: string[];
   duration_min: string;
   duration_max: string;
   time_from: string;
@@ -616,6 +630,7 @@ function readStagedFromParams(searchParams: URLSearchParams): StagedFilters {
     outcome: (searchParams.get("outcome") ?? "").split(",").filter(Boolean),
     ended_reason: (searchParams.get("ended_reason") ?? "").split(",").filter(Boolean),
     reviewed: (searchParams.get("reviewed") ?? "").split(",").filter(Boolean),
+    locations: (searchParams.get("locations") ?? "").split(",").filter(Boolean),
     duration_min: searchParams.get("duration_min") ?? "",
     duration_max: searchParams.get("duration_max") ?? "",
     time_from: searchParams.get("time_from") ?? "",
@@ -623,7 +638,7 @@ function readStagedFromParams(searchParams: URLSearchParams): StagedFilters {
   };
 }
 
-function MobileCallFilters({ agents, outcomes, endedReasons, directions }: CallFiltersProps) {
+function MobileCallFilters({ agents, outcomes, endedReasons, directions, locations }: CallFiltersProps) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -649,6 +664,7 @@ function MobileCallFilters({ agents, outcomes, endedReasons, directions }: CallF
     for (const key of FILTER_KEYS) {
       if (searchParams.get(key)) count += 1;
     }
+    if (searchParams.get("locations")) count += 1;
     if (searchParams.get("duration_min") || searchParams.get("duration_max")) count += 1;
     if (searchParams.get("time_from") || searchParams.get("time_to")) count += 1;
     return count;
@@ -681,6 +697,7 @@ function MobileCallFilters({ agents, outcomes, endedReasons, directions }: CallF
       outcome: [],
       ended_reason: [],
       reviewed: [],
+      locations: [],
       duration_min: "",
       duration_max: "",
       time_from: "",
@@ -701,6 +718,11 @@ function MobileCallFilters({ agents, outcomes, endedReasons, directions }: CallF
       if (list.length > 0) params.set(key, list.join(","));
       else params.delete(key);
     }
+
+    // Location is its own standalone control (not in FILTER_KEYS), so write it
+    // explicitly like the date range.
+    if (staged.locations.length > 0) params.set("locations", staged.locations.join(","));
+    else params.delete("locations");
 
     if (staged.duration_min) params.set("duration_min", staged.duration_min);
     else params.delete("duration_min");
@@ -734,6 +756,35 @@ function MobileCallFilters({ agents, outcomes, endedReasons, directions }: CallF
 
       <BottomSheet open={open} onClose={() => setOpen(false)} title="Filters">
         <div className="space-y-6 px-5 py-5">
+          {/* Location (standalone control; hidden for single-location clients) */}
+          {locations.length > 1 ? (
+            <section>
+              <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-[rgba(0,0,0,0.45)]">
+                Location
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {locations.map((location) => {
+                  const selected = staged.locations.includes(location.id);
+                  return (
+                    <button
+                      key={location.id}
+                      type="button"
+                      onClick={() => toggle("locations", location.id)}
+                      className={cn(
+                        "h-8 rounded-full border px-3 text-[13px] font-medium transition-colors",
+                        selected
+                          ? "border-[#0F1841] bg-[#0F1841] text-white"
+                          : "border-[#e5e5e5] bg-white text-[#525866] hover:bg-[#f8f9fa]",
+                      )}
+                    >
+                      {location.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          ) : null}
+
           {/* Date range */}
           <section>
             <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-[rgba(0,0,0,0.45)]">
