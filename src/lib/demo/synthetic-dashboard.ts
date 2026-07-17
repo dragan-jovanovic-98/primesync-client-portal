@@ -12,60 +12,17 @@
 // Revenue math mirrors get_portal_dashboard_metrics's structure: `conversions`
 // and `revenue_impact` are close-rate-weighted sums across categories (not raw
 // outcome counts) and revenue applies no per-outcome weighting. The close rates
-// are demo-specific (see DEMO_CLOSE_RATES) and intentionally NOT sourced from
-// the shared DEFAULT_REVENUE_SETTINGS, so tuning the demo never affects real
-// clients' dashboards.
+// are demo-specific (see DemoProfile.closeRates) and intentionally NOT sourced
+// from the shared DEFAULT_REVENUE_SETTINGS, so tuning the demo never affects
+// real clients' dashboards.
+//
+// Every business-shaped constant lives in ./demo-profiles.ts, keyed by
+// company_id. This module is the vertical-agnostic engine.
 
 import type { DashboardMetricsPayload } from "@/app/(portal)/dashboard/actions";
 import { getOutcomeTier, type OutcomeCategory } from "@/lib/call-outcomes";
 import type { DashboardDateRange } from "@/lib/date-range";
-
-// --- Tunable profile ---------------------------------------------------------
-// Calibrated against real bimmex-shop + oxford-automotive baselines. Adjust
-// these constants after a sales review without touching the logic below.
-
-const BASE_CALLS_PER_DAY = 20;
-const DAILY_JITTER = 0.15; // ±15% day-to-day variance
-
-// Indexed by Date.getDay() — 0 = Sunday .. 6 = Saturday. Weekends quieter.
-const WEEKDAY_FACTORS = [0.35, 1.0, 1.05, 1.05, 1.0, 0.95, 0.55];
-
-// Call duration draw: BASE + triangular(0..1) * SPREAD, clamped at MIN. Mean
-// triangular ≈ 0.5, so mean duration ≈ 18 + 0.5 * 64 = ~50s.
-const DURATION_BASE_S = 18;
-const DURATION_SPREAD_S = 64;
-const DURATION_MIN_S = 8;
-
-// Outcome mix — weights sum to 1. Categories are OutcomeCategory values so they
-// flow straight into the outcomes payload.
-const OUTCOME_MIX: ReadonlyArray<{ category: OutcomeCategory; weight: number }> = [
-  { category: "transfer", weight: 0.48 },
-  { category: "general_inquiry", weight: 0.3 },
-  { category: "appointment", weight: 0.12 },
-  { category: "quote", weight: 0.05 },
-  { category: "message", weight: 0.04 },
-  { category: "urgent", weight: 0.01 },
-];
-
-// Relative call likelihood per hour 0..23 — skewed to business hours with
-// mid-morning and mid-afternoon peaks.
-const HOUR_WEIGHTS = [
-  0.2, 0.15, 0.1, 0.1, 0.15, 0.3, 0.6, 1.2, // 0-7
-  3.0, 6.0, 7.0, 6.0, 4.0, 4.0, 6.0, 6.0, // 8-15
-  5.0, 3.5, 2.0, 1.5, 1.0, 0.7, 0.4, 0.3, // 16-23
-];
-
-const BUSINESS_HOUR_START = 8; // inclusive
-const BUSINESS_HOUR_END = 18; // exclusive
-
-const DEMO_TIMEZONE = "America/Los_Angeles";
-
-// Fallback agents used only if the demo company has no active assistants.
-const FALLBACK_AGENTS: ReadonlyArray<{ assistant_id: string; agent_name: string }> = [
-  { assistant_id: "demo-agent-front-desk", agent_name: "Front Desk AI" },
-  { assistant_id: "demo-agent-after-hours", agent_name: "After-Hours AI" },
-  { assistant_id: "demo-agent-overflow", agent_name: "Overflow AI" },
-];
+import { getDemoProfile, type DemoProfile } from "./demo-profiles";
 
 // --- Deterministic PRNG (xmur3 seed -> mulberry32) ---------------------------
 
@@ -134,7 +91,6 @@ function eachDay(from: Date, to: Date): Date[] {
 // --- Generation --------------------------------------------------------------
 
 const WEEKDAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] as const;
-const OUTCOME_WEIGHTS = OUTCOME_MIX.map((o) => o.weight);
 
 type WindowResult = {
   totalCalls: number;
@@ -154,32 +110,36 @@ function emptyWindow(): WindowResult {
   };
 }
 
-function generateWindow(from: Date, to: Date): WindowResult {
+function generateWindow(from: Date, to: Date, profile: DemoProfile): WindowResult {
   const result = emptyWindow();
+  const outcomeWeights = profile.outcomeMix.map((o) => o.weight);
+  // An empty namespace reproduces the pre-profile seed string exactly, keeping
+  // the primesync demo's numbers unchanged. See DemoProfile.seedNamespace.
+  const prefix = profile.seedNamespace ? `${profile.seedNamespace}:` : "";
 
   for (const day of eachDay(from, to)) {
-    const rng = makeRng(`day:${dateKey(day)}`);
+    const rng = makeRng(`day:${prefix}${dateKey(day)}`);
     const weekday = day.getDay();
-    const jitter = 1 + (rng() - 0.5) * 2 * DAILY_JITTER;
+    const jitter = 1 + (rng() - 0.5) * 2 * profile.dailyJitter;
     const callCount = Math.max(
       0,
-      Math.round(BASE_CALLS_PER_DAY * WEEKDAY_FACTORS[weekday] * jitter),
+      Math.round(profile.baseCallsPerDay * profile.weekdayFactors[weekday] * jitter),
     );
 
     for (let i = 0; i < callCount; i++) {
-      const category = OUTCOME_MIX[pickIndex(rng, OUTCOME_WEIGHTS)].category;
+      const category = profile.outcomeMix[pickIndex(rng, outcomeWeights)].category;
       result.outcomeCounts.set(
         category,
         (result.outcomeCounts.get(category) ?? 0) + 1,
       );
 
-      const hour = pickIndex(rng, HOUR_WEIGHTS);
+      const hour = pickIndex(rng, profile.hourWeights);
       result.hourCounts[hour] += 1;
 
       const triangular = (rng() + rng() + rng()) / 3;
       result.totalDurationS += Math.max(
-        DURATION_MIN_S,
-        Math.round(DURATION_BASE_S + triangular * DURATION_SPREAD_S),
+        profile.durationMinS,
+        Math.round(profile.durationBaseS + triangular * profile.durationSpreadS),
       );
     }
 
@@ -192,27 +152,8 @@ function generateWindow(from: Date, to: Date): WindowResult {
 
 // --- Revenue -----------------------------------------------------------------
 
-const DEMO_AOV = 250;
-
-// Per-category close rate (fraction) for the demo case study. Transfer and
-// general inquiry are 0 — a transferred call or an info request is not a
-// defensible revenue claim. Categories not in the generated outcome mix
-// (towing, voicemail, reschedule_cancel, other) are 0 for completeness.
-const DEMO_CLOSE_RATES: Record<OutcomeCategory, number> = {
-  appointment: 0.5,
-  quote: 0.2,
-  urgent: 0.5,
-  message: 0.15,
-  transfer: 0,
-  general_inquiry: 0,
-  towing: 0,
-  voicemail: 0,
-  reschedule_cancel: 0,
-  other: 0,
-};
-
-function closeFraction(category: OutcomeCategory): number {
-  return DEMO_CLOSE_RATES[category];
+function closeFraction(profile: DemoProfile, category: OutcomeCategory): number {
+  return profile.closeRates[category];
 }
 
 type Kpi = {
@@ -223,10 +164,10 @@ type Kpi = {
   revenue_impact: number;
 };
 
-function buildKpi(window: WindowResult): Kpi {
+function buildKpi(window: WindowResult, profile: DemoProfile): Kpi {
   let conversions = 0;
   for (const [category, count] of window.outcomeCounts) {
-    conversions += count * closeFraction(category);
+    conversions += count * closeFraction(profile, category);
   }
 
   return {
@@ -237,27 +178,32 @@ function buildKpi(window: WindowResult): Kpi {
         ? 0
         : round2(window.totalDurationS / window.totalCalls),
     conversions: round2(conversions),
-    revenue_impact: round2(conversions * DEMO_AOV),
+    revenue_impact: round2(conversions * profile.averageOrderValue),
   };
 }
 
-function buildOutcomes(window: WindowResult): DashboardMetricsPayload["outcomes"] {
+function buildOutcomes(
+  window: WindowResult,
+  profile: DemoProfile,
+): DashboardMetricsPayload["outcomes"] {
   return [...window.outcomeCounts.entries()]
     .map(([category, count]) => ({
       category,
       tier: getOutcomeTier(category),
       count,
-      estimated_value: count * Math.round(DEMO_AOV * closeFraction(category)),
+      estimated_value:
+        count * Math.round(profile.averageOrderValue * closeFraction(profile, category)),
     }))
     .sort((a, b) => b.count - a.count);
 }
 
 function buildHoursSplit(
   window: WindowResult,
+  profile: DemoProfile,
 ): DashboardMetricsPayload["hours_split"] {
   let businessHours = 0;
   for (let hour = 0; hour < 24; hour++) {
-    if (hour >= BUSINESS_HOUR_START && hour < BUSINESS_HOUR_END) {
+    if (hour >= profile.businessHourStart && hour < profile.businessHourEnd) {
       businessHours += window.hourCounts[hour];
     }
   }
@@ -286,11 +232,12 @@ function buildAgentPerformance(
   agents: ReadonlyArray<{ assistant_id: string; agent_name: string | null }>,
   window: WindowResult,
   conversions: number,
+  profile: DemoProfile,
 ): DashboardMetricsPayload["agent_performance"] {
   const roster =
     agents.length > 0
       ? agents
-      : (FALLBACK_AGENTS as ReadonlyArray<{
+      : (profile.fallbackAgents as ReadonlyArray<{
           assistant_id: string;
           agent_name: string | null;
         }>);
@@ -332,24 +279,27 @@ function buildAgentPerformance(
 export function buildSyntheticMetricsPayload(
   range: DashboardDateRange,
   agents: ReadonlyArray<{ assistant_id: string; agent_name: string | null }>,
+  companyId: string,
 ): DashboardMetricsPayload {
-  const current = generateWindow(range.from, range.to);
-  const previous = generateWindow(range.previousFrom, range.previousTo);
-  const currentKpi = buildKpi(current);
+  const profile = getDemoProfile(companyId);
+  const current = generateWindow(range.from, range.to, profile);
+  const previous = generateWindow(range.previousFrom, range.previousTo, profile);
+  const currentKpi = buildKpi(current, profile);
 
   return {
-    company_timezone: DEMO_TIMEZONE,
+    company_timezone: profile.timezone,
     revenue_settings_configured: true,
     current: currentKpi,
-    previous: buildKpi(previous),
-    outcomes: buildOutcomes(current),
-    hours_split: buildHoursSplit(current),
+    previous: buildKpi(previous, profile),
+    outcomes: buildOutcomes(current, profile),
+    hours_split: buildHoursSplit(current, profile),
     hourly_volume: buildHourlyVolume(current),
     daily_volume: buildDailyVolume(current),
     agent_performance: buildAgentPerformance(
       agents,
       current,
       currentKpi.conversions,
+      profile,
     ),
   };
 }

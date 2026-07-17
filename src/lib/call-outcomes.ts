@@ -2,6 +2,7 @@ export type OutcomeCategory =
   | "appointment"
   | "message"
   | "quote"
+  | "financing"
   | "urgent"
   | "towing"
   | "transfer"
@@ -30,6 +31,11 @@ const OUTCOME_MAP: Record<string, OutcomeCategory> = {
   send_first_sms: "message",
   quote: "quote",
   quote_request: "quote",
+  // Dealership vertical. Emitted only by dealer agents (see the GIADA demo
+  // cluster); repair agents never produce these.
+  financing_request: "financing",
+  financing: "financing",
+  credit_application: "financing",
   urgent_message: "urgent",
   urgent_request: "urgent",
   contactTow: "towing",
@@ -63,6 +69,7 @@ export const OUTCOME_CATEGORY_VALUES: Record<OutcomeCategory, string[]> = {
   ],
   message: ["message", "leave_message", "leaveMessage", "get_sms", "send_message", "send_first_sms"],
   quote: ["quote", "quote_request"],
+  financing: ["financing_request", "financing", "credit_application"],
   urgent: ["urgent_message", "urgent_request"],
   towing: ["contactTow", "contactTow_no_sms", "contact_tow"],
   transfer: ["transfer", "contact_laurel"],
@@ -84,6 +91,7 @@ export const OUTCOME_LABELS: Record<OutcomeCategory, string> = {
   appointment: "Appointment",
   message: "Message",
   quote: "Quote",
+  financing: "Financing",
   urgent: "Urgent",
   towing: "Towing",
   transfer: "Transfer",
@@ -108,6 +116,7 @@ export const OUTCOME_TIER_COLORS: Record<OutcomeTier, string> = {
 const OUTCOME_TIERS: Record<OutcomeCategory, OutcomeTier> = {
   appointment: "high",
   quote: "high",
+  financing: "high",
   urgent: "high",
   towing: "high",
   message: "medium",
@@ -121,6 +130,7 @@ const OUTCOME_TIERS: Record<OutcomeCategory, OutcomeTier> = {
 const OUTCOME_VALUE_WEIGHTS: Record<OutcomeCategory, number> = {
   appointment: 1,
   quote: 0.7,
+  financing: 0.9,
   urgent: 0.85,
   towing: 0.9,
   message: 0.2,
@@ -138,6 +148,21 @@ export function getOutcomeCategory(rawOutcome: string | null): OutcomeCategory {
 
 export function getOutcomeLabel(rawOutcome: string | null) {
   return OUTCOME_LABELS[getOutcomeCategory(rawOutcome)];
+}
+
+/**
+ * Label an already-resolved OutcomeCategory.
+ *
+ * Use this — not getOutcomeLabel — whenever you hold a category rather than a
+ * raw outcome string. getOutcomeLabel resolves its argument through OUTCOME_MAP
+ * first, and OUTCOME_MAP is keyed by RAW outcomes; passing a category through it
+ * only works for the categories that happen to share a name with one of their
+ * own raws (appointment, message, quote, transfer, voicemail, general_inquiry).
+ * The ones that don't — financing, urgent, towing, reschedule_cancel, other —
+ * fall through to "Other".
+ */
+export function getCategoryLabel(category: OutcomeCategory) {
+  return OUTCOME_LABELS[category];
 }
 
 export function isAppointmentOutcome(rawOutcome: string | null) {

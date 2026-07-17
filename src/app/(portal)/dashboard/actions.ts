@@ -1,7 +1,7 @@
 import { unstable_noStore as noStore } from "next/cache";
 import { getDashboardDateRange, type DashboardDateRange } from "@/lib/date-range";
 import {
-  getOutcomeLabel,
+  getCategoryLabel,
   OUTCOME_TIER_COLORS,
   type OutcomeCategory,
 } from "@/lib/call-outcomes";
@@ -185,8 +185,13 @@ function buildOutcomeChartData(
   // SQL groups by category; one row per category. Convert to the UI shape
   // using the display label + tier color from call-outcomes.ts. SQL already
   // sorted by count desc.
+  //
+  // getCategoryLabel, not getOutcomeLabel: row.category is already a category.
+  // Passing it through getOutcomeLabel re-resolved it via OUTCOME_MAP (keyed by
+  // RAW outcomes), which silently collapsed urgent / towing / reschedule_cancel
+  // / other into four separate slices all labelled "Other".
   return payload.map((row) => ({
-    name: getOutcomeLabel(row.category as string),
+    name: getCategoryLabel(row.category as OutcomeCategory),
     count: row.count,
     estimatedValue: Number(row.estimated_value),
     color: OUTCOME_TIER_COLORS[row.tier],
@@ -269,7 +274,7 @@ async function buildDemoDashboardData(
   ]);
 
   const agents = agentsResult.data ?? [];
-  const payload = buildSyntheticMetricsPayload(range, agents);
+  const payload = buildSyntheticMetricsPayload(range, agents, companyId);
 
   const locationOptions: DashboardLocationOption[] = (locationsResult.data ?? [])
     .filter((row) => row.location_name)

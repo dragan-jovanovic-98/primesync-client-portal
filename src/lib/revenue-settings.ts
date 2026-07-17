@@ -2,6 +2,7 @@ export type RevenueCategoryKey =
   | "appointment"
   | "message"
   | "quote"
+  | "financing"
   | "urgent"
   | "towing"
   | "transfer"
@@ -28,6 +29,11 @@ export const FIXED_REVENUE_CATEGORIES: Array<{
   { key: "appointment", label: "Appointments", description: "Booked appointments and appointment-request outcomes." },
   { key: "message", label: "Messages", description: "Messages that may turn into work after follow-up." },
   { key: "quote", label: "Quotes", description: "Quote and estimate requests." },
+  {
+    key: "financing",
+    label: "Financing",
+    description: "Financing and credit-application interest. Dealerships only; disabled by default.",
+  },
   { key: "urgent", label: "Urgent", description: "Urgent requests that can convert quickly." },
   { key: "towing", label: "Towing", description: "Towing and roadside recovery requests." },
   { key: "transfer", label: "Transfers", description: "Transferred calls that may still create revenue." },
@@ -43,6 +49,12 @@ export const DEFAULT_REVENUE_SETTINGS: RevenueSettings = {
     appointment: { enabled: true, closeRate: 60 },
     message: { enabled: true, closeRate: 15 },
     quote: { enabled: true, closeRate: 25 },
+    // Dealership-only. Disabled by default so this addition is a no-op for the
+    // repair fleet: rows written before financing existed have no 'financing'
+    // key, and get_portal_dashboard_metrics treats a missing key as
+    // disabled/$0. This default must MATCH that, or the settings UI would show
+    // financing as enabled while the RPC silently scored it at zero.
+    financing: { enabled: false, closeRate: 0 },
     urgent: { enabled: true, closeRate: 25 },
     towing: { enabled: true, closeRate: 60 },
     transfer: { enabled: true, closeRate: 0 },
